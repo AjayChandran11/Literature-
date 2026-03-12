@@ -1,0 +1,56 @@
+package com.cards.game.literature.ui.game
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.cards.game.literature.ui.theme.CardRed
+import com.cards.game.literature.ui.theme.GoldAccent
+import com.cards.game.literature.ui.theme.LightGreen
+
+@Composable
+fun ScoreBar(myTeamScore: Int, opponentTeamScore: Int, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                MaterialTheme.colorScheme.surfaceVariant,
+                RoundedCornerShape(8.dp)
+            )
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("Your Team", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "$myTeamScore",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = LightGreen
+            )
+        }
+        Text(
+            "VS",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = GoldAccent
+        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("Opponents", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "$opponentTeamScore",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = CardRed
+            )
+        }
+    }
+}
