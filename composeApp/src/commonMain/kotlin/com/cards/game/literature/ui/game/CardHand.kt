@@ -68,13 +68,13 @@ fun CardHand(
 }
 
 @Composable
-fun CardView(card: Card, isSelected: Boolean, onClick: () -> Unit) {
+fun CardView(card: Card, isSelected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val cardColor = if (card.suit.isRed) CardRed else Color.Black
     val bgColor = if (isSelected) GoldAccent.copy(alpha = 0.3f) else Color.White
     val borderColor = if (isSelected) GoldAccent else Color.LightGray
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .width(60.dp)
             .height(80.dp)
             .background(bgColor, RoundedCornerShape(8.dp))

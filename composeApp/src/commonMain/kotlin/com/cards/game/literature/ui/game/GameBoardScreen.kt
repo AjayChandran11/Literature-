@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cards.game.literature.model.Card
 import com.cards.game.literature.model.GameEvent
+import com.cards.game.literature.model.Suit
 import com.cards.game.literature.model.GamePhase
 import com.cards.game.literature.ui.theme.GoldAccent
 import com.cards.game.literature.viewmodel.GameUiState
@@ -31,6 +32,8 @@ fun GameBoardScreen(
 
     var showAskSheet by remember { mutableStateOf(false) }
     var showClaimSheet by remember { mutableStateOf(false) }
+    var askSuit by remember { mutableStateOf<Suit?>(null) }
+    var askIsLow by remember { mutableStateOf<Boolean?>(null) }
     var selectedCard by remember { mutableStateOf<Card?>(null) }
     var selectedTab by remember { mutableStateOf(GameTab.TABLE) }
     var previouslyMyTurn by remember { mutableStateOf(false) }
@@ -130,8 +133,12 @@ fun GameBoardScreen(
     // Ask bottom sheet
     if (showAskSheet) {
         AskBottomSheet(
-            myHalfSuits = uiState.myHandByHalfSuit.keys,
+            myHandByHalfSuit = uiState.myHandByHalfSuit,
             opponents = uiState.opponents,
+            initialSuit = askSuit,
+            initialIsLow = askIsLow,
+            onSuitSelected = { askSuit = it },
+            onIsLowSelected = { askIsLow = it },
             onConfirm = { targetId, card ->
                 showAskSheet = false
                 viewModel.askCard(targetId, card)
