@@ -1,6 +1,6 @@
 # Literature — Card Game
 
-A fully playable **Literature** card game for Android, built with Kotlin Multiplatform + Compose Multiplatform. Play against bots in 4, 6, or 8-player modes with full game rules enforcement. This game is currently in development and it is getting created using Claude. 
+A fully playable **Literature** card game for Android, built with Kotlin Multiplatform + Compose Multiplatform. Play against bots in 4, 6, or 8-player modes with full game rules enforcement. This game is currently in development and it is being created using Claude. 
 
 ---
 
