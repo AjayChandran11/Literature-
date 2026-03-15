@@ -5,6 +5,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -25,12 +26,12 @@ import com.cards.game.literature.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private val PageBackground = Color(0xFF0D0D1A)
-
 @Composable
 fun OnboardingScreen(onFinish: () -> Unit) {
     val pagerState = rememberPagerState(pageCount = { 5 })
     val scope = rememberCoroutineScope()
+    val background = MaterialTheme.colorScheme.background
+    val onBackground = MaterialTheme.colorScheme.onBackground
 
     // Intercept back on pages > 0 to go back a page; on page 0 do nothing
     BackHandler(enabled = pagerState.currentPage > 0) {
@@ -40,7 +41,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(PageBackground)
+            .background(background)
     ) {
         HorizontalPager(
             state = pagerState,
@@ -66,7 +67,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                 .padding(end = 16.dp, top = 8.dp)
         ) {
             TextButton(onClick = onFinish) {
-                Text("Skip", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
+                Text("Skip", color = onBackground.copy(alpha = 0.5f), fontSize = 14.sp)
             }
         }
 
@@ -122,6 +123,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
 
 @Composable
 private fun PagerIndicator(pageCount: Int, currentPage: Int) {
+    val onBackground = MaterialTheme.colorScheme.onBackground
     Row(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -139,7 +141,7 @@ private fun PagerIndicator(pageCount: Int, currentPage: Int) {
                     .width(width)
                     .clip(CircleShape)
                     .background(
-                        if (isSelected) GoldAccent else Color.White.copy(alpha = 0.25f)
+                        if (isSelected) GoldAccent else onBackground.copy(alpha = 0.25f)
                     )
             )
         }
@@ -170,7 +172,7 @@ private fun WelcomePage() {
     val shimmerOffset by shimmer.animateFloat(
         initialValue = 0f, targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            tween(2200, delayMillis = 800, easing = LinearEasing),
+            tween(2200, delayMillis = 0, easing = LinearEasing),
             RepeatMode.Restart
         ), label = "shimmerX"
     )
@@ -189,12 +191,16 @@ private fun WelcomePage() {
             label = "hintAlpha"
         )
 
+    val surface = MaterialTheme.colorScheme.surface
+    val background = MaterialTheme.colorScheme.background
+    val onBackground = MaterialTheme.colorScheme.onBackground
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 Brush.radialGradient(
-                    listOf(Color(0xFF1A1A3E), PageBackground),
+                    listOf(surface, background),
                     radius = 1200f
                 )
             ),
@@ -202,7 +208,7 @@ private fun WelcomePage() {
     ) {
         // Corner suit symbols
         val cornerSuits = listOf("♠", "♥", "♦", "♣")
-        val cornerColors = listOf(Color.White, CardRed, CardRed, Color.White)
+        val cornerColors = listOf(onBackground, CardRed, CardRed, onBackground)
         val cornerAlignments = listOf(
             Alignment.TopStart, Alignment.TopEnd,
             Alignment.BottomEnd, Alignment.BottomStart
@@ -230,7 +236,7 @@ private fun WelcomePage() {
         ) {
             // Suits row — each symbol fades + scales in individually
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                listOf("♠" to Color.White, "♥" to CardRed, "♦" to CardRed, "♣" to Color.White)
+                listOf("♠" to onBackground, "♥" to CardRed, "♦" to CardRed, "♣" to onBackground)
                     .forEachIndexed { i, (s, c) ->
                         val symAlpha by animateFloatAsState(
                             targetValue = if (suitVisible[i]) 0.75f else 0f,
@@ -281,7 +287,7 @@ private fun WelcomePage() {
                     "THE ULTIMATE CARD GAME",
                     fontSize = 13.sp,
                     letterSpacing = 3.sp,
-                    color = Color.White.copy(alpha = 0.45f),
+                    color = onBackground.copy(alpha = 0.45f),
                     fontWeight = FontWeight.Medium
                 )
             }
@@ -294,13 +300,13 @@ private fun WelcomePage() {
             ) {
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = Color.White.copy(alpha = 0.06f),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                    color = onBackground.copy(alpha = 0.06f),
+                    border = BorderStroke(1.dp, onBackground.copy(alpha = 0.1f))
                 ) {
                     Text(
                         "4–8 players  ·  2 teams  ·  48 cards\nAsk, strategise, and claim half suits",
                         fontSize = 14.sp,
-                        color = Color.White.copy(alpha = 0.55f),
+                        color = onBackground.copy(alpha = 0.55f),
                         textAlign = TextAlign.Center,
                         lineHeight = 22.sp,
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 14.dp)
@@ -320,7 +326,7 @@ private fun WelcomePage() {
             Text(
                 "Swipe to learn how to play →",
                 fontSize = 13.sp,
-                color = Color.White.copy(alpha = hintAlpha),
+                color = onBackground.copy(alpha = hintAlpha),
                 textAlign = TextAlign.Center
             )
         }
@@ -329,17 +335,24 @@ private fun WelcomePage() {
 
 // ─── Page 2: The Deck ───────────────────────────────────────────────────────
 
-private data class HalfSuitInfo(val suit: String, val name: String, val range: String, val color: Color)
+private data class HalfSuitInfo(
+    val suit: String,
+    val name: String,
+    val range: String,
+    val darkColor: Color,   // 800–900 shades for dark theme
+    val lightColor: Color,  // 500–700 shades for light theme
+)
 
 private val halfSuits = listOf(
-    HalfSuitInfo("♠", "Low Spades", "2  3  4  5  6  7", Color(0xFF37474F)),
-    HalfSuitInfo("♠", "High Spades", "9  10  J  Q  K  A", Color(0xFF263238)),
-    HalfSuitInfo("♥", "Low Hearts", "2  3  4  5  6  7", Color(0xFFB71C1C)),
-    HalfSuitInfo("♥", "High Hearts", "9  10  J  Q  K  A", Color(0xFF880E4F)),
-    HalfSuitInfo("♦", "Low Diamonds", "2  3  4  5  6  7", Color(0xFF1565C0)),
-    HalfSuitInfo("♦", "High Diamonds", "9  10  J  Q  K  A", Color(0xFF0D47A1)),
-    HalfSuitInfo("♣", "Low Clubs", "2  3  4  5  6  7", Color(0xFF2E7D32)),
-    HalfSuitInfo("♣", "High Clubs", "9  10  J  Q  K  A", Color(0xFF1B5E20)),
+    //                                    dark          light
+    HalfSuitInfo("♠", "Low Spades",  "2  3  4  5  6  7",  Color(0xFF37474F), Color(0xFF607D8B)),
+    HalfSuitInfo("♠", "High Spades", "9  10  J  Q  K  A", Color(0xFF263238), Color(0xFF546E7A)),
+    HalfSuitInfo("♥", "Low Hearts",  "2  3  4  5  6  7",  Color(0xFFB71C1C), Color(0xFFE53935)),
+    HalfSuitInfo("♥", "High Hearts", "9  10  J  Q  K  A", Color(0xFF880E4F), Color(0xFFC2185B)),
+    HalfSuitInfo("♦", "Low Diamonds",  "2  3  4  5  6  7",  Color(0xFF1565C0), Color(0xFF1E88E5)),
+    HalfSuitInfo("♦", "High Diamonds", "9  10  J  Q  K  A", Color(0xFF0D47A1), Color(0xFF1976D2)),
+    HalfSuitInfo("♣", "Low Clubs",  "2  3  4  5  6  7",  Color(0xFF2E7D32), Color(0xFF43A047)),
+    HalfSuitInfo("♣", "High Clubs", "9  10  J  Q  K  A", Color(0xFF1B5E20), Color(0xFF388E3C)),
 )
 
 @Composable
@@ -357,6 +370,8 @@ private fun DeckPage(isActive: Boolean) {
         repeat(8) { i -> delay(100L); tileVisible[i] = true }
     }
 
+    val onBackground = MaterialTheme.colorScheme.onBackground
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -371,7 +386,7 @@ private fun DeckPage(isActive: Boolean) {
                 Text(
                     "48 cards — split into 8 Half Suits of 6 cards each",
                     fontSize = 13.sp,
-                    color = Color.White.copy(alpha = 0.55f),
+                    color = onBackground.copy(alpha = 0.55f),
                     textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(2.dp))
@@ -424,13 +439,14 @@ private fun HalfSuitTile(visible: Boolean, info: HalfSuitInfo) {
         animationSpec = tween(200),
         label = "alpha"
     )
+    val tileColor = if (isSystemInDarkTheme()) info.darkColor else info.lightColor
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(68.dp)
             .graphicsLayer { rotationY = rotation; cameraDistance = 14f * density; this.alpha = alpha }
             .clip(RoundedCornerShape(10.dp))
-            .background(info.color)
+            .background(tileColor)
             .padding(horizontal = 10.dp, vertical = 8.dp),
         contentAlignment = Alignment.CenterStart
     ) {
@@ -479,6 +495,8 @@ private fun TeamsPage(isActive: Boolean) {
         label = "teamB"
     )
 
+    val onBackground = MaterialTheme.colorScheme.onBackground
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -492,7 +510,7 @@ private fun TeamsPage(isActive: Boolean) {
             Text(
                 "Collaborate with your teammates to claim the most half suits",
                 fontSize = 13.sp,
-                color = Color.White.copy(alpha = 0.55f),
+                color = onBackground.copy(alpha = 0.55f),
                 textAlign = TextAlign.Center
             )
         }
@@ -506,6 +524,7 @@ private fun TeamsPage(isActive: Boolean) {
                 teamColor = LightGreen,
                 players = listOf("You", "Alice", "Bob"),
                 playerVisible = playerVisible.subList(0, 3),
+                onBackground = onBackground,
                 modifier = Modifier
                     .weight(1f)
                     .graphicsLayer {
@@ -518,6 +537,7 @@ private fun TeamsPage(isActive: Boolean) {
                 teamColor = CardRed,
                 players = listOf("Charlie", "Diana", "Eve"),
                 playerVisible = playerVisible.subList(3, 6),
+                onBackground = onBackground,
                 modifier = Modifier
                     .weight(1f)
                     .graphicsLayer {
@@ -539,7 +559,7 @@ private fun TeamsPage(isActive: Boolean) {
                 Text(
                     "💡  Your asks reveal info to your whole team — think strategically before asking!",
                     fontSize = 13.sp,
-                    color = Color.White.copy(alpha = 0.65f),
+                    color = onBackground.copy(alpha = 0.65f),
                     textAlign = TextAlign.Center,
                     lineHeight = 20.sp,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
@@ -555,6 +575,7 @@ private fun TeamColumn(
     teamColor: Color,
     players: List<String>,
     playerVisible: List<Boolean>,
+    onBackground: Color,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -599,7 +620,7 @@ private fun TeamColumn(
                         Text(name.first().toString(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = teamColor)
                     }
                     Spacer(Modifier.width(8.dp))
-                    Text(name, fontSize = 13.sp, color = Color.White.copy(alpha = 0.8f))
+                    Text(name, fontSize = 13.sp, color = onBackground.copy(alpha = 0.8f))
                 }
             }
         }
@@ -659,6 +680,8 @@ private fun AskPage() {
         label = "cardScale"
     )
 
+    val onBackground = MaterialTheme.colorScheme.onBackground
+
     val labelText = when (phase) {
         1    -> "Asking for ♠7..."
         2    -> "✓  Got it! You can ask again"
@@ -669,7 +692,7 @@ private fun AskPage() {
     val labelColor = when (phase) {
         2    -> LightGreen
         5    -> CardRed
-        else -> Color.White.copy(alpha = 0.75f)
+        else -> onBackground.copy(alpha = 0.75f)
     }
 
     Column(
@@ -685,7 +708,7 @@ private fun AskPage() {
             Text(
                 "On your turn, ask an opponent for a card — you must already hold one from that half suit",
                 fontSize = 13.sp,
-                color = Color.White.copy(alpha = 0.55f),
+                color = onBackground.copy(alpha = 0.55f),
                 textAlign = TextAlign.Center,
                 lineHeight = 20.sp
             )
@@ -697,7 +720,7 @@ private fun AskPage() {
                 .fillMaxWidth()
                 .height(200.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(Color.White.copy(alpha = 0.04f)),
+                .background(onBackground.copy(alpha = 0.04f)),
             contentAlignment = Alignment.Center
         ) {
             val travelRange = maxHeight.value * 0.32f
@@ -707,6 +730,7 @@ private fun AskPage() {
                 label = "Opponent",
                 initial = "C",
                 color = CardRed,
+                onBackground = onBackground,
                 modifier = Modifier.align(Alignment.TopCenter).padding(top = 18.dp)
             )
 
@@ -715,6 +739,7 @@ private fun AskPage() {
                 label = "You",
                 initial = "Y",
                 color = LightGreen,
+                onBackground = onBackground,
                 modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 18.dp)
             )
 
@@ -760,15 +785,15 @@ private fun AskPage() {
 
         // Rules
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            RuleRow(icon = "✓", text = "Success → take the card and ask again", color = LightGreen)
-            RuleRow(icon = "✗", text = "Denied → turn passes to that opponent", color = CardRed)
-            RuleRow(icon = "⚠", text = "You must hold a card from that half suit", color = GoldAccent)
+            RuleRow(icon = "✓", text = "Success → take the card and ask again", color = LightGreen, onBackground = onBackground)
+            RuleRow(icon = "✗", text = "Denied → turn passes to that opponent", color = CardRed, onBackground = onBackground)
+            RuleRow(icon = "⚠", text = "You must hold a card from that half suit", color = GoldAccent, onBackground = onBackground)
         }
     }
 }
 
 @Composable
-private fun PlayerBubble(label: String, initial: String, color: Color, modifier: Modifier = Modifier) {
+private fun PlayerBubble(label: String, initial: String, color: Color, onBackground: Color, modifier: Modifier = Modifier) {
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
@@ -779,12 +804,12 @@ private fun PlayerBubble(label: String, initial: String, color: Color, modifier:
         ) {
             Text(initial, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = color)
         }
-        Text(label, fontSize = 11.sp, color = Color.White.copy(alpha = 0.5f))
+        Text(label, fontSize = 11.sp, color = onBackground.copy(alpha = 0.5f))
     }
 }
 
 @Composable
-private fun RuleRow(icon: String, text: String, color: Color) {
+private fun RuleRow(icon: String, text: String, color: Color, onBackground: Color) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -795,7 +820,7 @@ private fun RuleRow(icon: String, text: String, color: Color) {
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text(icon, fontSize = 14.sp, color = color, fontWeight = FontWeight.Bold)
-        Text(text, fontSize = 13.sp, color = Color.White.copy(alpha = 0.7f))
+        Text(text, fontSize = 13.sp, color = onBackground.copy(alpha = 0.7f))
     }
 }
 
@@ -868,6 +893,8 @@ private fun ClaimPage(onFinish: () -> Unit, isActive: Boolean) {
     }
     val cardValues = listOf("A", "2", "3", "4", "5", "6")
 
+    val onBackground = MaterialTheme.colorScheme.onBackground
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -881,7 +908,7 @@ private fun ClaimPage(onFinish: () -> Unit, isActive: Boolean) {
             Text(
                 "When your team holds all 6 cards of a half suit — claim it for a point!",
                 fontSize = 13.sp,
-                color = Color.White.copy(alpha = 0.55f),
+                color = onBackground.copy(alpha = 0.55f),
                 textAlign = TextAlign.Center,
                 lineHeight = 20.sp
             )
@@ -932,7 +959,7 @@ private fun ClaimPage(onFinish: () -> Unit, isActive: Boolean) {
             enter = fadeIn(tween(400)) + expandVertically(tween(400))
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Your Team", fontSize = 13.sp, color = Color.White.copy(alpha = 0.45f))
+                Text("Your Team", fontSize = 13.sp, color = onBackground.copy(alpha = 0.45f))
                 Text(
                     "$score",
                     fontSize = 64.sp,
@@ -940,7 +967,7 @@ private fun ClaimPage(onFinish: () -> Unit, isActive: Boolean) {
                     color = LightGreen,
                     lineHeight = 70.sp
                 )
-                Text("half suits claimed", fontSize = 13.sp, color = Color.White.copy(alpha = 0.45f))
+                Text("half suits claimed", fontSize = 13.sp, color = onBackground.copy(alpha = 0.45f))
                 Spacer(Modifier.height(4.dp))
                 Text(
                     "Most half suits wins!",
