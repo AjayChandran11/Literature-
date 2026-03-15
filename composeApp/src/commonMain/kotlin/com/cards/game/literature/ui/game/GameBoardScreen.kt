@@ -1,5 +1,6 @@
 package com.cards.game.literature.ui.game
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -13,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cards.game.literature.model.Card
 import com.cards.game.literature.model.GameEvent
+import com.cards.game.literature.model.HalfSuit
 import com.cards.game.literature.model.Suit
 import com.cards.game.literature.model.GamePhase
 import com.cards.game.literature.ui.theme.GoldAccent
@@ -25,7 +27,56 @@ fun GameBoardScreen(
     playerName: String,
     playerCount: Int,
     onGameEnd: () -> Unit,
+    onQuit: () -> Unit,
     viewModel: GameViewModel = koinViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    var showQuitDialog by remember { mutableStateOf(false) }
+
+    BackHandler { showQuitDialog = true }
+
+    if (showQuitDialog) {
+        AlertDialog(
+            onDismissRequest = { showQuitDialog = false },
+            title = { Text("Quit Game?", fontWeight = FontWeight.Bold) },
+            text = { Text("Are you sure you want to quit? Your progress will be lost.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showQuitDialog = false
+                        onQuit()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Quit")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showQuitDialog = false }) {
+                    Text("Keep Playing")
+                }
+            }
+        )
+    }
+
+    // Start game on first composition
+    LaunchedEffect(Unit) {
+        viewModel.startGame(playerName, playerCount)
+    }
+
+    // Navigate to result when game ends
+    LaunchedEffect(uiState.phase) {
+        if (uiState.phase == GamePhase.FINISHED) {
+            onGameEnd()
+        }
+    }
+
+    GameBoardContent(viewModel = viewModel)
+}
+
+@Composable
+fun GameBoardContent(
+    viewModel: GameViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val gameLog by viewModel.gameLog.collectAsState()
@@ -38,15 +89,22 @@ fun GameBoardScreen(
     var selectedTab by remember { mutableStateOf(GameTab.TABLE) }
     var previouslyMyTurn by remember { mutableStateOf(false) }
 
-    // Start game on first composition
-    LaunchedEffect(Unit) {
-        viewModel.startGame(playerName, playerCount)
-    }
-
-    // Navigate to result when game ends
-    LaunchedEffect(uiState.phase) {
-        if (uiState.phase == GamePhase.FINISHED) {
-            onGameEnd()
+    // Clear suit selection if the selected half suit gets claimed
+    LaunchedEffect(uiState.halfSuitStatuses) {
+        val suit = askSuit
+        val isLow = askIsLow
+        if (suit != null && isLow != null) {
+            val selectedHalfSuit = when (suit) {
+                Suit.SPADES -> if (isLow) HalfSuit.SPADES_LOW else HalfSuit.SPADES_HIGH
+                Suit.HEARTS -> if (isLow) HalfSuit.HEARTS_LOW else HalfSuit.HEARTS_HIGH
+                Suit.DIAMONDS -> if (isLow) HalfSuit.DIAMONDS_LOW else HalfSuit.DIAMONDS_HIGH
+                Suit.CLUBS -> if (isLow) HalfSuit.CLUBS_LOW else HalfSuit.CLUBS_HIGH
+            }
+            val isClaimed = uiState.halfSuitStatuses.any { it.halfSuit == selectedHalfSuit && it.claimedByTeamId != null }
+            if (isClaimed) {
+                askSuit = null
+                askIsLow = null
+            }
         }
     }
 
@@ -103,11 +161,14 @@ fun GameBoardScreen(
             LastEventStrip(events = gameLog)
 
             // Bottom NavigationBar
-            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.height(64.dp)
+            ) {
                 GameTab.entries.forEach { tab ->
                     NavigationBarItem(
-                        icon = { Text(tab.symbol, fontSize = 18.sp) },
-                        label = { Text(tab.label) },
+                        icon = { Text(tab.symbol, fontSize = 16.sp) },
+                        label = { Text(tab.label, fontSize = 11.sp) },
                         selected = selectedTab == tab,
                         onClick = { selectedTab = tab },
                         colors = NavigationBarItemDefaults.colors(
@@ -139,9 +200,9 @@ fun GameBoardScreen(
             initialIsLow = askIsLow,
             onSuitSelected = { askSuit = it },
             onIsLowSelected = { askIsLow = it },
-            onConfirm = { targetId, card ->
+            onConfirm = { targetId, cards ->
                 showAskSheet = false
-                viewModel.askCard(targetId, card)
+                viewModel.askCards(targetId, cards)
             },
             onDismiss = { showAskSheet = false }
         )
@@ -175,15 +236,15 @@ private fun LastEventStrip(events: List<GameEvent>) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 6.dp),
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 "Last: ",
-                fontSize = 12.sp,
+                fontSize = 13.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            GameLogEntry(event = lastEvent)
+            GameLogEntry(event = lastEvent, fontSize = 15.sp)
         }
     }
 }

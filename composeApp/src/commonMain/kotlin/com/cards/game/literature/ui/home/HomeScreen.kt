@@ -14,7 +14,10 @@ import com.cards.game.literature.ui.theme.GoldAccent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onStartGame: (playerName: String, playerCount: Int) -> Unit) {
+fun HomeScreen(
+    onStartGame: (playerName: String, playerCount: Int) -> Unit,
+    onPlayOnline: (playerName: String) -> Unit = {}
+) {
     var playerName by remember { mutableStateOf("") }
     var showSetupDialog by remember { mutableStateOf(false) }
 
@@ -74,6 +77,22 @@ fun HomeScreen(onStartGame: (playerName: String, playerCount: Int) -> Unit) {
             )
         ) {
             Text("New Game", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedButton(
+            onClick = { onPlayOnline(playerName.trim()) },
+            enabled = playerName.isNotBlank(),
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .height(56.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = GoldAccent
+            )
+        ) {
+            Text("Play Online", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
     }
 

@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cards.game.literature.model.GameEvent
@@ -80,7 +81,7 @@ fun GameLogPanel(events: List<GameEvent>, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun GameLogEntry(event: GameEvent) {
+fun GameLogEntry(event: GameEvent, fontSize: TextUnit = 14.sp) {
     val (text, color) = when (event) {
         is GameEvent.CardAsked -> {
             if (event.success) {
@@ -104,7 +105,7 @@ fun GameLogEntry(event: GameEvent) {
     if (text.isNotEmpty()) {
         Text(
             text = text,
-            fontSize = 14.sp,
+            fontSize = fontSize,
             color = color,
             modifier = Modifier.padding(vertical = 1.dp)
         )
