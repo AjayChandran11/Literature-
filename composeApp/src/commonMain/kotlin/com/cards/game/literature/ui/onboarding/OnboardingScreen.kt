@@ -48,10 +48,10 @@ fun OnboardingScreen(onFinish: () -> Unit) {
         ) { page ->
             when (page) {
                 0 -> WelcomePage()
-                1 -> DeckPage()
-                2 -> TeamsPage()
+                1 -> DeckPage(isActive = pagerState.currentPage == 1)
+                2 -> TeamsPage(isActive = pagerState.currentPage == 2)
                 3 -> AskPage()
-                4 -> ClaimPage(onFinish = onFinish)
+                4 -> ClaimPage(onFinish = onFinish, isActive = pagerState.currentPage == 4)
             }
         }
 
@@ -156,11 +156,12 @@ private fun WelcomePage() {
     var hintVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        listOf(0L, 250L, 500L, 750L).forEachIndexed { i, d ->
-            delay(d); suitVisible[i] = true
+        repeat(4) { i ->
+            delay(180L)
+            suitVisible[i] = true
         }
-        delay(300); titleVisible = true
-        delay(500); subtitleVisible = true
+        delay(200); titleVisible = true
+        delay(400); subtitleVisible = true
         delay(500); hintVisible = true
     }
 
@@ -173,12 +174,11 @@ private fun WelcomePage() {
             RepeatMode.Restart
         ), label = "shimmerX"
     )
+    // Sweep the highlight from before the text to beyond it so restart is invisible
     val shimmerBrush = Brush.linearGradient(
-        colorStops = arrayOf(
-            (shimmerOffset - 0.25f).coerceAtLeast(0f) to GoldAccent,
-            shimmerOffset.coerceIn(0f, 1f) to Color(0xFFFFF9E6),
-            (shimmerOffset + 0.25f).coerceAtMost(1f) to GoldAccent
-        )
+        colors = listOf(GoldAccent, Color(0xFFFFF9E6), GoldAccent),
+        start = Offset((shimmerOffset - 0.15f) * 900f, 0f),
+        end   = Offset((shimmerOffset + 0.15f) * 900f, 0f)
     )
 
     // Hint pulse
@@ -228,17 +228,30 @@ private fun WelcomePage() {
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.padding(bottom = 100.dp)
         ) {
-            // Suits row
-            AnimatedVisibility(
-                visible = suitVisible.all { it },
-                enter = fadeIn(tween(400))
-            ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    listOf("♠" to Color.White, "♥" to CardRed, "♦" to CardRed, "♣" to Color.White)
-                        .forEach { (s, c) ->
-                            Text(s, fontSize = 32.sp, color = c.copy(alpha = 0.75f))
-                        }
-                }
+            // Suits row — each symbol fades + scales in individually
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                listOf("♠" to Color.White, "♥" to CardRed, "♦" to CardRed, "♣" to Color.White)
+                    .forEachIndexed { i, (s, c) ->
+                        val symAlpha by animateFloatAsState(
+                            targetValue = if (suitVisible[i]) 0.75f else 0f,
+                            animationSpec = tween(300),
+                            label = "symAlpha$i"
+                        )
+                        val symScale by animateFloatAsState(
+                            targetValue = if (suitVisible[i]) 1f else 0.4f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            ),
+                            label = "symScale$i"
+                        )
+                        Text(
+                            s,
+                            fontSize = 32.sp,
+                            color = c.copy(alpha = symAlpha),
+                            modifier = Modifier.graphicsLayer { scaleX = symScale; scaleY = symScale }
+                        )
+                    }
             }
 
             Spacer(Modifier.height(4.dp))
@@ -246,7 +259,9 @@ private fun WelcomePage() {
             // Shimmer title
             AnimatedVisibility(
                 visible = titleVisible,
-                enter = slideInVertically(tween(700, easing = FastOutSlowInEasing)) { it / 2 } + fadeIn(tween(700))
+                enter = slideInVertically(
+                    spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMediumLow)
+                ) { it / 4 } + fadeIn(tween(500))
             ) {
                 Text(
                     "Literature",
@@ -275,7 +290,7 @@ private fun WelcomePage() {
 
             AnimatedVisibility(
                 visible = subtitleVisible,
-                enter = fadeIn(tween(600)) + expandVertically()
+                enter = fadeIn(tween(500)) + expandVertically(tween(500))
             ) {
                 Surface(
                     shape = RoundedCornerShape(12.dp),
@@ -283,7 +298,7 @@ private fun WelcomePage() {
                     border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
                 ) {
                     Text(
-                        "6–8 players  ·  2 teams  ·  48 cards\nAsk, strategise, and claim half suits",
+                        "4–8 players  ·  2 teams  ·  48 cards\nAsk, strategise, and claim half suits",
                         fontSize = 14.sp,
                         color = Color.White.copy(alpha = 0.55f),
                         textAlign = TextAlign.Center,
@@ -317,22 +332,27 @@ private fun WelcomePage() {
 private data class HalfSuitInfo(val suit: String, val name: String, val range: String, val color: Color)
 
 private val halfSuits = listOf(
-    HalfSuitInfo("♠", "Low Spades", "A  2  3  4  5  6  7", Color(0xFF37474F)),
-    HalfSuitInfo("♠", "High Spades", "9  10  J  Q  K", Color(0xFF263238)),
-    HalfSuitInfo("♥", "Low Hearts", "A  2  3  4  5  6  7", Color(0xFFB71C1C)),
-    HalfSuitInfo("♥", "High Hearts", "9  10  J  Q  K", Color(0xFF880E4F)),
-    HalfSuitInfo("♦", "Low Diamonds", "A  2  3  4  5  6  7", Color(0xFF1565C0)),
-    HalfSuitInfo("♦", "High Diamonds", "9  10  J  Q  K", Color(0xFF0D47A1)),
-    HalfSuitInfo("♣", "Low Clubs", "A  2  3  4  5  6  7", Color(0xFF2E7D32)),
-    HalfSuitInfo("♣", "High Clubs", "9  10  J  Q  K", Color(0xFF1B5E20)),
+    HalfSuitInfo("♠", "Low Spades", "2  3  4  5  6  7", Color(0xFF37474F)),
+    HalfSuitInfo("♠", "High Spades", "9  10  J  Q  K  A", Color(0xFF263238)),
+    HalfSuitInfo("♥", "Low Hearts", "2  3  4  5  6  7", Color(0xFFB71C1C)),
+    HalfSuitInfo("♥", "High Hearts", "9  10  J  Q  K  A", Color(0xFF880E4F)),
+    HalfSuitInfo("♦", "Low Diamonds", "2  3  4  5  6  7", Color(0xFF1565C0)),
+    HalfSuitInfo("♦", "High Diamonds", "9  10  J  Q  K  A", Color(0xFF0D47A1)),
+    HalfSuitInfo("♣", "Low Clubs", "2  3  4  5  6  7", Color(0xFF2E7D32)),
+    HalfSuitInfo("♣", "High Clubs", "9  10  J  Q  K  A", Color(0xFF1B5E20)),
 )
 
 @Composable
-private fun DeckPage() {
+private fun DeckPage(isActive: Boolean) {
     val tileVisible = remember { mutableStateListOf(*Array(8) { false }) }
     var headerVisible by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isActive) {
+        if (!isActive) {
+            headerVisible = false
+            repeat(8) { tileVisible[it] = false }
+            return@LaunchedEffect
+        }
         delay(100); headerVisible = true
         repeat(8) { i -> delay(100L); tileVisible[i] = true }
     }
@@ -349,7 +369,7 @@ private fun DeckPage() {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text("The Deck", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = GoldAccent)
                 Text(
-                    "48 cards — no 8s — split into 8 Half Suits of 6 cards each",
+                    "48 cards — split into 8 Half Suits of 6 cards each",
                     fontSize = 13.sp,
                     color = Color.White.copy(alpha = 0.55f),
                     textAlign = TextAlign.Center
@@ -430,12 +450,18 @@ private fun HalfSuitTile(visible: Boolean, info: HalfSuitInfo) {
 // ─── Page 3: Teams ──────────────────────────────────────────────────────────
 
 @Composable
-private fun TeamsPage() {
+private fun TeamsPage(isActive: Boolean) {
     var teamsVisible by remember { mutableStateOf(false) }
     val playerVisible = remember { mutableStateListOf(*Array(6) { false }) }
     var tipVisible by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isActive) {
+        if (!isActive) {
+            teamsVisible = false
+            repeat(6) { playerVisible[it] = false }
+            tipVisible = false
+            return@LaunchedEffect
+        }
         delay(150); teamsVisible = true
         delay(500)
         repeat(6) { i -> delay(130L); playerVisible[i] = true }
@@ -482,7 +508,10 @@ private fun TeamsPage() {
                 playerVisible = playerVisible.subList(0, 3),
                 modifier = Modifier
                     .weight(1f)
-                    .graphicsLayer { translationX = teamAOffset * size.width }
+                    .graphicsLayer {
+                        translationX = teamAOffset * size.width
+                        alpha = (1f + teamAOffset).coerceIn(0f, 1f)
+                    }
             )
             TeamColumn(
                 teamName = "Team B",
@@ -491,7 +520,10 @@ private fun TeamsPage() {
                 playerVisible = playerVisible.subList(3, 6),
                 modifier = Modifier
                     .weight(1f)
-                    .graphicsLayer { translationX = teamBOffset * size.width }
+                    .graphicsLayer {
+                        translationX = teamBOffset * size.width
+                        alpha = (1f - teamBOffset).coerceIn(0f, 1f)
+                    }
             )
         }
 
@@ -790,14 +822,22 @@ private fun ClaimBadge(visible: Boolean) {
 }
 
 @Composable
-private fun ClaimPage(onFinish: () -> Unit) {
+private fun ClaimPage(onFinish: () -> Unit, isActive: Boolean) {
     var cardsGathered by remember { mutableStateOf(false) }
     var badgeVisible by remember { mutableStateOf(false) }
     var showScore by remember { mutableStateOf(false) }
     var score by remember { mutableIntStateOf(0) }
     var buttonVisible by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isActive) {
+        if (!isActive) {
+            cardsGathered = false
+            badgeVisible = false
+            showScore = false
+            score = 0
+            buttonVisible = false
+            return@LaunchedEffect
+        }
         delay(350); cardsGathered = true
         delay(750); badgeVisible = true
         delay(400); showScore = true
@@ -912,11 +952,6 @@ private fun ClaimPage(onFinish: () -> Unit) {
         }
 
         Spacer(Modifier.weight(1f))
-
-        // Indicator row
-        PagerIndicator(pageCount = 5, currentPage = 4)
-
-        Spacer(Modifier.height(8.dp))
 
         // Let's Play! button
         AnimatedVisibility(
