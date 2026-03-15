@@ -1,5 +1,6 @@
 package com.cards.game.literature.ui.lobby
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,6 +28,36 @@ fun WaitingRoomScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var fillWithBots by remember { mutableStateOf(true) }
+    var showLeaveDialog by remember { mutableStateOf(false) }
+
+    BackHandler {
+        showLeaveDialog = true
+    }
+
+    if (showLeaveDialog) {
+        AlertDialog(
+            onDismissRequest = { showLeaveDialog = false },
+            title = { Text("Leave Room?", fontWeight = FontWeight.Bold) },
+            text = { Text("Are you sure you want to leave the room?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showLeaveDialog = false
+                        viewModel.leaveRoom()
+                        onLeave()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Leave")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLeaveDialog = false }) {
+                    Text("Stay")
+                }
+            }
+        )
+    }
 
     LaunchedEffect(Unit) {
         viewModel.navigateToGame.collect {

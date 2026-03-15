@@ -53,6 +53,9 @@ fun AppNavigation() {
                     navController.navigate(Routes.RESULT) {
                         popUpTo(Routes.HOME)
                     }
+                },
+                onQuit = {
+                    navController.popBackStack(Routes.HOME, inclusive = false)
                 }
             )
         }
@@ -91,6 +94,9 @@ fun AppNavigation() {
                     navController.navigate(Routes.RESULT_ONLINE) {
                         popUpTo(Routes.HOME)
                     }
+                },
+                onQuit = {
+                    navController.popBackStack(Routes.HOME, inclusive = false)
                 }
             )
         }

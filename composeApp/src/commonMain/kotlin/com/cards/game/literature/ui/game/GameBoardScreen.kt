@@ -1,5 +1,6 @@
 package com.cards.game.literature.ui.game
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -26,9 +27,37 @@ fun GameBoardScreen(
     playerName: String,
     playerCount: Int,
     onGameEnd: () -> Unit,
+    onQuit: () -> Unit,
     viewModel: GameViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showQuitDialog by remember { mutableStateOf(false) }
+
+    BackHandler { showQuitDialog = true }
+
+    if (showQuitDialog) {
+        AlertDialog(
+            onDismissRequest = { showQuitDialog = false },
+            title = { Text("Quit Game?", fontWeight = FontWeight.Bold) },
+            text = { Text("Are you sure you want to quit? Your progress will be lost.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showQuitDialog = false
+                        onQuit()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Quit")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showQuitDialog = false }) {
+                    Text("Keep Playing")
+                }
+            }
+        )
+    }
 
     // Start game on first composition
     LaunchedEffect(Unit) {

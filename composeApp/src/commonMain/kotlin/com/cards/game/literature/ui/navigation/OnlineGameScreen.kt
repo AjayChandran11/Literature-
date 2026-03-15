@@ -1,16 +1,16 @@
 package com.cards.game.literature.ui.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cards.game.literature.model.GamePhase
@@ -25,10 +25,39 @@ import org.koin.core.qualifier.named
 fun OnlineGameScreen(
     onlineRepository: OnlineGameRepository,
     onGameEnd: () -> Unit,
+    onQuit: () -> Unit,
     viewModel: GameViewModel = koinViewModel(qualifier = named("online"))
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val connectionState by onlineRepository.connectionState.collectAsState()
+    var showQuitDialog by remember { mutableStateOf(false) }
+
+    BackHandler { showQuitDialog = true }
+
+    if (showQuitDialog) {
+        AlertDialog(
+            onDismissRequest = { showQuitDialog = false },
+            title = { Text("Leave Game?", fontWeight = FontWeight.Bold) },
+            text = { Text("Are you sure you want to leave? A bot will take over your turn.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showQuitDialog = false
+                        onlineRepository.disconnect()
+                        onQuit()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Leave")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showQuitDialog = false }) {
+                    Text("Keep Playing")
+                }
+            }
+        )
+    }
 
     // Navigate to result when game ends
     LaunchedEffect(uiState.phase) {

@@ -43,9 +43,8 @@ class WaitingRoomViewModel(
         }
 
         viewModelScope.launch {
-            onlineRepository.gameState.filterNotNull().collect {
-                _navigateToGame.emit(Unit)
-            }
+            onlineRepository.gameState.filterNotNull().first()
+            _navigateToGame.emit(Unit)
         }
 
         viewModelScope.launch {

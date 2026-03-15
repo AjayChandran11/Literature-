@@ -55,4 +55,12 @@ class LobbyViewModel(
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
     }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Cancel any in-progress connection if user backs out of lobby
+        if (onlineRepository.connectionState.value == ConnectionState.CONNECTING) {
+            onlineRepository.disconnect()
+        }
+    }
 }

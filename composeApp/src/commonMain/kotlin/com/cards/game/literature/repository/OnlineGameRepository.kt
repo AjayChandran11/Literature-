@@ -79,6 +79,14 @@ class OnlineGameRepository(
     suspend fun leaveRoom() {
         sendMessage(ClientMessage.LeaveRoom)
         disconnect()
+        reset()
+    }
+
+    private fun reset() {
+        _gameState.value = null
+        _roomState.value = null
+        myPlayerId = ""
+        roomCode = ""
     }
 
     suspend fun reconnect(code: String, playerId: String) {
@@ -157,8 +165,14 @@ class OnlineGameRepository(
             _errors.emit("Not connected")
             return
         }
-        val text = json.encodeToString(message)
-        session.send(Frame.Text(text))
+        try {
+            val text = json.encodeToString(message)
+            session.send(Frame.Text(text))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            _errors.emit("Send failed: ${e.message}")
+        }
     }
 
     private suspend fun handleServerMessage(text: String) {
