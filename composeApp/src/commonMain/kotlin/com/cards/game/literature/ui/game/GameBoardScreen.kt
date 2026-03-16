@@ -153,7 +153,7 @@ fun GameBoardContent(
                         selectedCard = selectedCard,
                         onCardSelected = { selectedCard = it }
                     )
-                    GameTab.LOG -> LogTab(events = gameLog)
+                    // GameTab.LOG -> LogTab(events = gameLog)
                 }
             }
 
@@ -162,8 +162,7 @@ fun GameBoardContent(
 
             // Bottom NavigationBar
             NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                modifier = Modifier.height(64.dp)
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 GameTab.entries.forEach { tab ->
                     NavigationBarItem(
@@ -227,24 +226,61 @@ fun GameBoardContent(
 
 @Composable
 private fun LastEventStrip(events: List<GameEvent>) {
-    val lastEvent = events.lastOrNull { it !is GameEvent.TurnChanged && it !is GameEvent.GameStarted }
+    // Every ask emits CardAsked + TurnChanged (even when same player keeps turn).
+    // "Current turn" = all events since the last TurnChanged that pointed to a DIFFERENT player.
+    val lastTurnChange = events.lastOrNull { it is GameEvent.TurnChanged } as? GameEvent.TurnChanged
         ?: return
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 2.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                "Last: ",
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            GameLogEntry(event = lastEvent, fontSize = 15.sp)
+    val currentPlayerId = lastTurnChange.newPlayerId
+
+    // Find the last TurnChanged where a DIFFERENT player got the turn
+    val lastOtherTurnIdx = events.indexOfLast { event ->
+        event is GameEvent.TurnChanged && event.newPlayerId != currentPlayerId
+    }
+
+    // Current player's turn started at the first TurnChanged(currentPlayer) after lastOtherTurnIdx
+    val turnStartIdx = if (lastOtherTurnIdx >= 0) {
+        val slice = events.subList(lastOtherTurnIdx + 1, events.size)
+        val firstCurrent = slice.indexOfFirst { event ->
+            event is GameEvent.TurnChanged && event.newPlayerId == currentPlayerId
+        }
+        if (firstCurrent >= 0) lastOtherTurnIdx + 1 + firstCurrent + 1 else lastOtherTurnIdx + 1
+    } else 0
+
+    val currentTurnEvents = events.drop(turnStartIdx)
+        .filterNot { it is GameEvent.TurnChanged || it is GameEvent.GameStarted }
+
+    // If the current player hasn't acted yet (just received the turn), show the PREVIOUS player's
+    // full session instead — apply the same session-start algorithm for the previous player.
+    val displayEvents = if (currentTurnEvents.isNotEmpty()) {
+        currentTurnEvents
+    } else {
+        val lastTurnIdx = events.indexOfLast { it is GameEvent.TurnChanged }
+        val prevPlayerId = (events.getOrNull(lastOtherTurnIdx) as? GameEvent.TurnChanged)?.newPlayerId
+        if (prevPlayerId != null && lastOtherTurnIdx >= 0) {
+            // Find where the previous player's session started (search only up to lastTurnIdx)
+            val truncated = events.subList(0, lastTurnIdx)
+            val prevOtherIdx = truncated.indexOfLast { event ->
+                event is GameEvent.TurnChanged && event.newPlayerId != prevPlayerId
+            }
+            val prevSessionStart = if (prevOtherIdx >= 0) {
+                val slice = truncated.subList(prevOtherIdx + 1, truncated.size)
+                val firstPrev = slice.indexOfFirst { event ->
+                    event is GameEvent.TurnChanged && event.newPlayerId == prevPlayerId
+                }
+                if (firstPrev >= 0) prevOtherIdx + 1 + firstPrev + 1 else prevOtherIdx + 1
+            } else 0
+            truncated.drop(prevSessionStart)
+                .filterNot { it is GameEvent.TurnChanged || it is GameEvent.GameStarted }
+        } else emptyList()
+    }
+
+    if (displayEvents.isEmpty()) return
+
+    Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 2.dp) {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
+            displayEvents.forEach { event ->
+                GameLogEntry(event = event, fontSize = 13.sp)
+            }
         }
     }
 }

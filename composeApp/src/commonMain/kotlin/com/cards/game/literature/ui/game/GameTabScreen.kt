@@ -23,10 +23,10 @@ import com.cards.game.literature.viewmodel.GameUiState
 enum class GameTab(val label: String, val symbol: String) {
     TABLE("Table", "\u25A6"),
     HAND("Hand", "\u2660"),
-    LOG("Log", "\u2630")
+    // LOG("Log", "\u2630")  // Removed from in-game UI; full log shown on Result screen
 }
 
-enum class LogFilter { ALL, ASKS, CLAIMS }
+// enum class LogFilter { ALL, ASKS, CLAIMS }  // Only used by LogTab
 
 @Composable
 fun TableTab(uiState: GameUiState) {
@@ -92,6 +92,7 @@ fun HandTab(
     }
 }
 
+/*
 @Composable
 fun LogTab(events: List<GameEvent>) {
     var filter by rememberSaveable { mutableStateOf(LogFilter.ALL) }
@@ -139,6 +140,7 @@ fun LogTab(events: List<GameEvent>) {
         }
     }
 }
+*/
 
 @Composable
 private fun SectionLabel(text: String) {
