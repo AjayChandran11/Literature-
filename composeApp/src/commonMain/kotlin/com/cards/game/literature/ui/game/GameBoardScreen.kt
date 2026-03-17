@@ -9,7 +9,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cards.game.literature.model.Card
@@ -17,7 +22,9 @@ import com.cards.game.literature.model.GameEvent
 import com.cards.game.literature.model.HalfSuit
 import com.cards.game.literature.model.Suit
 import com.cards.game.literature.model.GamePhase
+import com.cards.game.literature.ui.theme.CardRed
 import com.cards.game.literature.ui.theme.GoldAccent
+import com.cards.game.literature.ui.theme.LightGreen
 import com.cards.game.literature.viewmodel.GameUiState
 import com.cards.game.literature.viewmodel.GameViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -226,6 +233,119 @@ fun GameBoardContent(
     }
 }
 
+// ─── Last Event Strip ────────────────────────────────────────────────────────
+
+private data class StripMessage(
+    val indicator: String,
+    val indicatorColor: Color,
+    val text: String
+)
+
+/**
+ * Consolidate raw game events into readable strip messages.
+ * - Groups consecutive successful asks by the same asker into one line.
+ * - Returns at most [limit] messages.
+ */
+private fun consolidateEvents(events: List<GameEvent>, limit: Int = 5): List<StripMessage> {
+    val messages = mutableListOf<StripMessage>()
+    var i = 0
+    while (i < events.size) {
+        when (val event = events[i]) {
+            is GameEvent.CardAsked -> {
+                if (event.success) {
+                    // Group consecutive successful asks from the same batch (same click).
+                    // Events from a single submitMultiAsk share the same non-null batchId.
+                    val group = mutableListOf(event)
+                    val batch = event.batchId
+                    if (batch != null) {
+                        while (i + 1 < events.size) {
+                            val next = events[i + 1]
+                            if (next is GameEvent.CardAsked && next.success
+                                && next.batchId == batch
+                            ) {
+                                group.add(next)
+                                i++
+                            } else break
+                        }
+                    }
+                    val text = if (group.size == 1) {
+                        "${event.askerName} got ${event.card.displayName} from ${event.targetName}"
+                    } else {
+                        val cards = group.joinToString(", ") { it.card.displayName }
+                        "${event.askerName} got $cards from ${event.targetName}"
+                    }
+                    messages.add(StripMessage("✓", LightGreen, text))
+                } else {
+                    messages.add(StripMessage(
+                        "✗", CardRed,
+                        "${event.askerName} asked ${event.targetName} for ${event.card.displayName} — No!"
+                    ))
+                }
+            }
+            is GameEvent.DeckClaimed -> {
+                if (event.correct) {
+                    messages.add(StripMessage(
+                        "✓", LightGreen,
+                        "${event.claimerName} claimed ${event.halfSuit.displayName} correctly!"
+                    ))
+                } else {
+                    messages.add(StripMessage(
+                        "✗", CardRed,
+                        "${event.claimerName} claimed ${event.halfSuit.displayName} incorrectly!"
+                    ))
+                }
+            }
+            is GameEvent.GameEnded -> {
+                messages.add(StripMessage("★", GoldAccent, "Game Over!"))
+            }
+            else -> {}
+        }
+        i++
+    }
+    return messages.takeLast(limit)
+}
+
+/**
+ * Build an AnnotatedString that colors suit symbols for visibility:
+ * ♥♦ → red, ♠♣ → bright [brightSuitColor] so they pop on dark backgrounds.
+ */
+private fun styleSuitSymbols(text: String, brightSuitColor: Color): androidx.compose.ui.text.AnnotatedString {
+    return buildAnnotatedString {
+        for (char in text) {
+            when (char) {
+                '♥', '♦' -> withStyle(SpanStyle(color = CardRed, fontWeight = FontWeight.Bold)) { append(char) }
+                '♠', '♣' -> withStyle(SpanStyle(color = brightSuitColor, fontWeight = FontWeight.Bold)) { append(char) }
+                else -> append(char)
+            }
+        }
+    }
+}
+
+@Composable
+private fun StripEntry(message: StripMessage) {
+    val onSurface = MaterialTheme.colorScheme.onSurface
+    // Bright color for ♠♣ — white in dark mode for max contrast, dark in light mode
+    val darkSuitColor = if (MaterialTheme.colorScheme.background.luminance() < 0.5f)
+        Color.White else Color(0xFF1C1B1F)
+    Row(
+        modifier = Modifier.padding(vertical = 3.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Text(
+            message.indicator,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = message.indicatorColor
+        )
+        Text(
+            text = styleSuitSymbols(message.text, darkSuitColor),
+            style = MaterialTheme.typography.bodyLarge,
+            color = onSurface
+        )
+    }
+}
+
 @Composable
 private fun LastEventStrip(events: List<GameEvent>) {
     // Every ask emits CardAsked + TurnChanged (even when same player keeps turn).
@@ -251,38 +371,43 @@ private fun LastEventStrip(events: List<GameEvent>) {
     val currentTurnEvents = events.drop(turnStartIdx)
         .filterNot { it is GameEvent.TurnChanged || it is GameEvent.GameStarted }
 
-    // If the current player hasn't acted yet (just received the turn), show the PREVIOUS player's
-    // full session instead — apply the same session-start algorithm for the previous player.
+    // If the current player hasn't acted yet, show the previous player's last batch
+    // of events as context. Events with the same batchId are from a single click.
+    // Once the current player acts, show only their events.
     val displayEvents = if (currentTurnEvents.isNotEmpty()) {
         currentTurnEvents
     } else {
-        val lastTurnIdx = events.indexOfLast { it is GameEvent.TurnChanged }
-        val prevPlayerId = (events.getOrNull(lastOtherTurnIdx) as? GameEvent.TurnChanged)?.newPlayerId
-        if (prevPlayerId != null && lastOtherTurnIdx >= 0) {
-            // Find where the previous player's session started (search only up to lastTurnIdx)
-            val truncated = events.subList(0, lastTurnIdx)
-            val prevOtherIdx = truncated.indexOfLast { event ->
-                event is GameEvent.TurnChanged && event.newPlayerId != prevPlayerId
+        val prior = events.take(turnStartIdx)
+            .filter { it !is GameEvent.TurnChanged && it !is GameEvent.GameStarted }
+        if (prior.isEmpty()) emptyList()
+        else {
+            val lastEvent = prior.last()
+            val lastBatchId = (lastEvent as? GameEvent.CardAsked)?.batchId
+            if (lastBatchId != null) {
+                // Collect all events from the same batch
+                prior.filter { it is GameEvent.CardAsked && it.batchId == lastBatchId }
+            } else {
+                listOf(lastEvent)
             }
-            val prevSessionStart = if (prevOtherIdx >= 0) {
-                val slice = truncated.subList(prevOtherIdx + 1, truncated.size)
-                val firstPrev = slice.indexOfFirst { event ->
-                    event is GameEvent.TurnChanged && event.newPlayerId == prevPlayerId
-                }
-                if (firstPrev >= 0) prevOtherIdx + 1 + firstPrev + 1 else prevOtherIdx + 1
-            } else 0
-            truncated.drop(prevSessionStart)
-                .filterNot { it is GameEvent.TurnChanged || it is GameEvent.GameStarted }
-        } else emptyList()
+        }
     }
 
     if (displayEvents.isEmpty()) return
 
-    Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 2.dp) {
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
-            displayEvents.forEach { event ->
-                GameLogEntry(event = event, fontSize = 14.sp)
-            }
+    val messages = consolidateEvents(displayEvents)
+    if (messages.isEmpty()) return
+
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 2.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            messages.forEach { msg -> StripEntry(msg) }
         }
     }
 }
