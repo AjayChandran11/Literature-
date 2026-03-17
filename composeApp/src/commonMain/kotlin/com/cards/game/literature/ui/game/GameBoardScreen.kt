@@ -92,7 +92,7 @@ fun GameBoardContent(
     var showClaimSheet by remember { mutableStateOf(false) }
     var askSuit by remember { mutableStateOf<Suit?>(null) }
     var askIsLow by remember { mutableStateOf<Boolean?>(null) }
-    var selectedCard by remember { mutableStateOf<Card?>(null) }
+    // var selectedCard by remember { mutableStateOf<Card?>(null) } // TODO: future use
     var selectedTab by remember { mutableStateOf(GameTab.TABLE) }
     var previouslyMyTurn by remember { mutableStateOf(false) }
 
@@ -156,11 +156,7 @@ fun GameBoardContent(
             ) { tab ->
                 when (tab) {
                     GameTab.TABLE -> TableTab(uiState = uiState)
-                    GameTab.HAND -> HandTab(
-                        uiState = uiState,
-                        selectedCard = selectedCard,
-                        onCardSelected = { selectedCard = it }
-                    )
+                    GameTab.HAND -> HandTab(uiState = uiState)
                     // GameTab.LOG -> LogTab(events = gameLog)
                 }
             }

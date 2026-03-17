@@ -69,11 +69,7 @@ fun TableTab(uiState: GameUiState) {
 }
 
 @Composable
-fun HandTab(
-    uiState: GameUiState,
-    selectedCard: Card?,
-    onCardSelected: (Card) -> Unit
-) {
+fun HandTab(uiState: GameUiState) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -88,20 +84,8 @@ fun HandTab(
         )
         CardHand(
             handByHalfSuit = uiState.myHandByHalfSuit,
-            selectedCard = selectedCard,
-            onCardSelected = onCardSelected,
             modifier = Modifier.weight(1f)
         )
-        AnimatedVisibility(visible = selectedCard != null) {
-            selectedCard?.let { card ->
-                Text(
-                    text = "Selected: ${card.displayName}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = GoldAccent,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-        }
     }
 }
 

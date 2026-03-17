@@ -28,8 +28,6 @@ import com.cards.game.literature.ui.theme.GoldAccent
 @Composable
 fun CardHand(
     handByHalfSuit: Map<HalfSuit, List<Card>>,
-    selectedCard: Card?,
-    onCardSelected: (Card) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -58,8 +56,8 @@ fun CardHand(
                         cards.forEach { card ->
                             CardView(
                                 card = card,
-                                isSelected = card == selectedCard,
-                                onClick = { onCardSelected(card) }
+                                isSelected = false,
+                                onClick = { }
                             )
                         }
                     }
