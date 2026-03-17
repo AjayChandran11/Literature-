@@ -167,8 +167,8 @@ fun GameBoardContent(
             ) {
                 GameTab.entries.forEach { tab ->
                     NavigationBarItem(
-                        icon = { Text(tab.symbol, fontSize = 16.sp) },
-                        label = { Text(tab.label, fontSize = 11.sp) },
+                        icon = { Icon(tab.icon, contentDescription = tab.label) },
+                        label = { Text(tab.label, style = MaterialTheme.typography.bodyLarge) },
                         selected = selectedTab == tab,
                         onClick = { selectedTab = tab },
                         colors = NavigationBarItemDefaults.colors(
@@ -280,7 +280,7 @@ private fun LastEventStrip(events: List<GameEvent>) {
     Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 2.dp) {
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
             displayEvents.forEach { event ->
-                GameLogEntry(event = event, fontSize = 13.sp)
+                GameLogEntry(event = event, fontSize = 14.sp)
             }
         }
     }
@@ -313,7 +313,7 @@ private fun TurnIndicatorBanner(uiState: GameUiState) {
             if (uiState.isMyTurn) {
                 Text(
                     "\u2726 Your Turn!",
-                    fontSize = 20.sp,
+                    style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = GoldAccent
                 )
@@ -330,14 +330,14 @@ private fun TurnIndicatorBanner(uiState: GameUiState) {
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         "${uiState.activePlayerName} is thinking...",
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             } else {
                 Text(
                     "${uiState.activePlayerName}'s turn",
-                    fontSize = 14.sp,
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

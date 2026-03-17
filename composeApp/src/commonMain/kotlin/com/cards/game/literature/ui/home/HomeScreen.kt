@@ -37,14 +37,13 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "Literature",
-            fontSize = 42.sp,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.displayMedium,
             color = GoldAccent
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "The Classic Card Game",
-            fontSize = 16.sp,
+            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(48.dp))
@@ -76,7 +75,7 @@ fun HomeScreen(
                 disabledContainerColor = MaterialTheme.colorScheme.outline
             )
         ) {
-            Text("New Game", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("New Game", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -92,7 +91,7 @@ fun HomeScreen(
                 contentColor = GoldAccent
             )
         ) {
-            Text("Play Online", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("Play Online", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         }
     }
 

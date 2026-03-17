@@ -52,8 +52,7 @@ fun ResultScreen(
                 uiState.isWinner -> "You Win!"
                 else -> "You Lose!"
             },
-            fontSize = 36.sp,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.displaySmall,
             color = when {
                 uiState.isDraw -> GoldAccent
                 uiState.isWinner -> LightGreen
@@ -69,26 +68,26 @@ fun ResultScreen(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(uiState.myTeamName, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(uiState.myTeamName, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
                     "${uiState.myTeamScore}",
-                    fontSize = 48.sp,
+                    style = MaterialTheme.typography.displayLarge,
                     fontWeight = FontWeight.Bold,
                     color = LightGreen
                 )
             }
             Text(
                 "-",
-                fontSize = 48.sp,
+                style = MaterialTheme.typography.displayLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 16.dp)
             )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(uiState.opponentTeamName, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(uiState.opponentTeamName, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
                     "${uiState.opponentTeamScore}",
-                    fontSize = 48.sp,
+                    style = MaterialTheme.typography.displayLarge,
                     fontWeight = FontWeight.Bold,
                     color = CardRed
                 )
@@ -100,7 +99,7 @@ fun ResultScreen(
         // Breakdown
         Text(
             "Half-Suit Breakdown",
-            fontSize = 16.sp,
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = GoldAccent
         )
@@ -121,7 +120,7 @@ fun ResultScreen(
                 ) {
                     Text(
                         status.halfSuit.displayName,
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     val claimedBy = when (status.claimedByTeamId) {
@@ -136,7 +135,7 @@ fun ResultScreen(
                     }
                     Text(
                         claimedBy,
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = claimColor,
                         fontWeight = FontWeight.Medium
                     )

@@ -47,7 +47,7 @@ fun CardHand(
                 ) {
                     Text(
                         halfSuit.displayName,
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.width(72.dp)
                     )

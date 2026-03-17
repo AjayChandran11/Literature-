@@ -55,7 +55,7 @@ fun ClaimBottomSheet(
                     ClaimStep.ASSIGN_CARDS -> "Step 2: Assign Cards to Players"
                     ClaimStep.CONFIRM -> "Confirm Your Claim"
                 },
-                fontSize = 18.sp,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = GoldAccent
             )
@@ -95,7 +95,7 @@ fun ClaimBottomSheet(
 
                     Text(
                         "Assign each card to the teammate who holds it:",
-                        fontSize = 15.sp,
+                        style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(12.dp))
@@ -118,7 +118,7 @@ fun ClaimBottomSheet(
                         ) {
                             Text(
                                 card.displayName,
-                                fontSize = 16.sp,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.weight(1f)
                             )
@@ -135,8 +135,7 @@ fun ClaimBottomSheet(
                                     ) {
                                         Text(
                                             "You \u2713",
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Medium,
+                                            style = MaterialTheme.typography.labelLarge,
                                             color = MaterialTheme.colorScheme.primary
                                         )
                                     }
@@ -157,7 +156,7 @@ fun ClaimBottomSheet(
                                         ) {
                                             Text(
                                                 "$assignedName \u25be",
-                                                fontSize = 14.sp,
+                                                style = MaterialTheme.typography.titleSmall,
                                                 color = if (currentAssignment == null)
                                                     MaterialTheme.colorScheme.onSurfaceVariant
                                                 else
@@ -171,7 +170,7 @@ fun ClaimBottomSheet(
                                     ) {
                                         allTeamPlayers.forEach { player ->
                                             DropdownMenuItem(
-                                                text = { Text(player.name, fontSize = 15.sp) },
+                                                text = { Text(player.name, style = MaterialTheme.typography.titleMedium) },
                                                 onClick = {
                                                     val newMap = assignments.toMutableMap()
                                                     newMap[card] = player.id
@@ -212,13 +211,13 @@ fun ClaimBottomSheet(
 
                     Text(
                         "Claiming ${hs.displayName}",
-                        fontSize = 18.sp,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         "\u26a0\ufe0f If any assignment is wrong, the opponent gets the point!",
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.titleSmall,
                         color = CardRed
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -234,13 +233,13 @@ fun ClaimBottomSheet(
                         ) {
                             Text(
                                 "$name:",
-                                fontSize = 15.sp,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.width(72.dp)
                             )
                             Text(
                                 cards.joinToString(", ") { it.key.displayName },
-                                fontSize = 15.sp,
+                                style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.weight(1f)
                             )
