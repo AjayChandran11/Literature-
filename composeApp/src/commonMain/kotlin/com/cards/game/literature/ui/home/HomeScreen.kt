@@ -11,7 +11,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cards.game.literature.ui.theme.CardRed
-import com.cards.game.literature.ui.theme.GoldAccent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,13 +52,13 @@ fun HomeScreen(
                 text = "\u2660 \u2665 \u2666 \u2663",
                 fontSize = 48.sp,
                 textAlign = TextAlign.Center,
-                color = GoldAccent
+                color = MaterialTheme.colorScheme.secondary
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Literature",
                 style = MaterialTheme.typography.displayMedium,
-                color = GoldAccent
+                color = MaterialTheme.colorScheme.secondary
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -76,9 +75,9 @@ fun HomeScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(0.8f),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = GoldAccent,
-                    focusedLabelColor = GoldAccent,
-                    cursorColor = GoldAccent
+                    focusedBorderColor = MaterialTheme.colorScheme.secondary,
+                    focusedLabelColor = MaterialTheme.colorScheme.secondary,
+                    cursorColor = MaterialTheme.colorScheme.secondary
                 )
             )
 
@@ -109,7 +108,7 @@ fun HomeScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = GoldAccent
+                    contentColor = MaterialTheme.colorScheme.secondary
                 )
             ) {
                 Text("Play Online", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -152,7 +151,7 @@ fun GameSetupDialog(
                         RadioButton(
                             selected = selectedCount == count,
                             onClick = { selectedCount = count },
-                            colors = RadioButtonDefaults.colors(selectedColor = GoldAccent)
+                            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.secondary)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
