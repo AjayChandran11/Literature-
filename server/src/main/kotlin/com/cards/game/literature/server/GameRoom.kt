@@ -217,12 +217,9 @@ class GameRoom(
 
             broadcastGameViews()
 
-            // If it's the disconnected player's turn, skip it
-            val state = gameState
-            if (state != null && state.currentPlayer.id == playerId && !state.currentPlayer.isBot) {
-                turnTimeoutJob?.cancel()
-                botScope?.launch { skipTurn(playerId) }
-            }
+            // Don't skip the turn immediately — let the existing turn timer
+            // continue running. If the player reconnects before timeout, they
+            // can still play. If the timer fires, skipTurn handles it.
 
             // Start 2-min disconnect timeout
             val job = botScope?.launch {
