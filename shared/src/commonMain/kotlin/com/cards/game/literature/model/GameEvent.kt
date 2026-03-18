@@ -46,6 +46,34 @@ sealed class GameEvent {
         val winnerTeamId: String?,
         override val timestamp: Long = currentTimeMillis()
     ) : GameEvent()
+
+    @Serializable
+    data class TurnTimedOut(
+        val playerId: String,
+        val playerName: String,
+        override val timestamp: Long = currentTimeMillis()
+    ) : GameEvent()
+
+    @Serializable
+    data class PlayerDisconnected(
+        val playerId: String,
+        val playerName: String,
+        override val timestamp: Long = currentTimeMillis()
+    ) : GameEvent()
+
+    @Serializable
+    data class PlayerReconnected(
+        val playerId: String,
+        val playerName: String,
+        override val timestamp: Long = currentTimeMillis()
+    ) : GameEvent()
+
+    @Serializable
+    data class PlayerReplacedByBot(
+        val playerId: String,
+        val playerName: String,
+        override val timestamp: Long = currentTimeMillis()
+    ) : GameEvent()
 }
 
 expect fun currentTimeMillis(): Long

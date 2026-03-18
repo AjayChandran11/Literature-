@@ -1,6 +1,7 @@
 package com.cards.game.literature.repository
 
 import com.cards.game.literature.model.*
+import com.cards.game.literature.network.NetworkMonitor
 import com.cards.game.literature.protocol.*
 import io.ktor.client.*
 import io.ktor.client.plugins.websocket.*
@@ -9,6 +10,15 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+
+sealed class PlayerConnectionEvent {
+    data class Disconnected(val playerId: String, val playerName: String) : PlayerConnectionEvent()
+    data class Reconnected(val playerId: String, val playerName: String) : PlayerConnectionEvent()
+    data class ReplacedByBot(val playerId: String, val playerName: String) : PlayerConnectionEvent()
+    data class HostChanged(val newHostName: String) : PlayerConnectionEvent()
+}
+
+data class ReconnectInfo(val playerName: String, val deadlineMs: Long)
 
 class OnlineGameRepository(
     private val serverUrl: String,
@@ -35,16 +45,48 @@ class OnlineGameRepository(
     private val _errors = MutableSharedFlow<String>(extraBufferCapacity = 16)
     val errors: Flow<String> = _errors.asSharedFlow()
 
+    private val _playerEvents = MutableSharedFlow<PlayerConnectionEvent>(extraBufferCapacity = 16)
+    val playerEvents: Flow<PlayerConnectionEvent> = _playerEvents.asSharedFlow()
+
+    private val _reconnectCountdowns = MutableStateFlow<Map<String, ReconnectInfo>>(emptyMap())
+    val reconnectCountdowns: StateFlow<Map<String, ReconnectInfo>> = _reconnectCountdowns.asStateFlow()
+
     private var webSocketSession: WebSocketSession? = null
     private var connectionJob: Job? = null
     private var autoReconnectJob: Job? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var shouldAutoReconnect = false
+    private var lastSeenEventTimestamp: Long = 0L
+    private var needsEventReplay = false
 
     var myPlayerId: String = ""
         private set
     var roomCode: String = ""
         private set
+
+    init {
+        scope.launch {
+            NetworkMonitor.isNetworkAvailable.collect { available ->
+                if (!available) {
+                    // Network lost — proactively close the WebSocket so we enter
+                    // RECONNECTING immediately instead of waiting for TCP timeout
+                    if (_connectionState.value == ConnectionState.CONNECTED
+                        && roomCode.isNotEmpty() && myPlayerId.isNotEmpty()
+                    ) {
+                        try { webSocketSession?.close() } catch (_: Exception) {}
+                    }
+                } else {
+                    // Network restored — reconnect immediately
+                    if (_connectionState.value != ConnectionState.CONNECTED
+                        && roomCode.isNotEmpty() && myPlayerId.isNotEmpty()
+                    ) {
+                        autoReconnectJob?.cancel()
+                        connectAndSend(ClientMessage.Reconnect(roomCode, myPlayerId))
+                    }
+                }
+            }
+        }
+    }
 
     suspend fun createRoom(playerName: String, playerCount: Int) {
         connectAndSend(ClientMessage.CreateRoom(playerName, playerCount))
@@ -82,9 +124,18 @@ class OnlineGameRepository(
         reset()
     }
 
+    suspend fun leaveGame() {
+        sendMessage(ClientMessage.LeaveGame)
+        disconnect()
+        reset()
+    }
+
     private fun reset() {
         _gameState.value = null
         _roomState.value = null
+        _reconnectCountdowns.value = emptyMap()
+        lastSeenEventTimestamp = 0L
+        needsEventReplay = false
         myPlayerId = ""
         roomCode = ""
     }
@@ -92,10 +143,27 @@ class OnlineGameRepository(
     suspend fun reconnect(code: String, playerId: String) {
         roomCode = code
         myPlayerId = playerId
+        needsEventReplay = true
         connectAndSend(ClientMessage.Reconnect(code, playerId))
     }
 
+    fun triggerReconnect() {
+        if (roomCode.isNotEmpty() && myPlayerId.isNotEmpty()) {
+            needsEventReplay = true
+            scope.launch {
+                connectAndSend(ClientMessage.Reconnect(roomCode, myPlayerId))
+            }
+        }
+    }
+
     private suspend fun connectAndSend(firstMessage: ClientMessage) {
+        // Pre-connection internet check
+        if (!NetworkMonitor.isNetworkAvailable.value) {
+            _errors.emit("No internet connection")
+            _connectionState.value = ConnectionState.DISCONNECTED
+            return
+        }
+
         disconnect()
         shouldAutoReconnect = true
         _connectionState.value = ConnectionState.CONNECTING
@@ -145,8 +213,14 @@ class OnlineGameRepository(
                 delay(delayMs)
                 if (!shouldAutoReconnect) return@launch
 
+                // Skip attempt if no network — don't count it
+                if (!NetworkMonitor.isNetworkAvailable.value) {
+                    continue
+                }
+
                 try {
                     _connectionState.value = ConnectionState.RECONNECTING
+                    needsEventReplay = true
                     connectAndSend(ClientMessage.Reconnect(roomCode, myPlayerId))
                     return@launch // success
                 } catch (e: CancellationException) {
@@ -199,6 +273,40 @@ class OnlineGameRepository(
             }
             is ServerMessage.GameEventOccurred -> {
                 _gameEvents.emit(message.event)
+                lastSeenEventTimestamp = message.event.timestamp
+
+                // Also emit player connection events for UI notifications
+                when (val event = message.event) {
+                    is GameEvent.PlayerDisconnected -> {
+                        _playerEvents.emit(
+                            PlayerConnectionEvent.Disconnected(event.playerId, event.playerName)
+                        )
+                        // Show reconnect countdown immediately (estimate 2-min deadline)
+                        val deadline = event.timestamp + 2 * 60_000L
+                        _reconnectCountdowns.update { current ->
+                            current + (event.playerId to ReconnectInfo(event.playerName, deadline))
+                        }
+                    }
+                    is GameEvent.PlayerReconnected -> {
+                        _playerEvents.emit(
+                            PlayerConnectionEvent.Reconnected(event.playerId, event.playerName)
+                        )
+                        // Clear countdown immediately
+                        _reconnectCountdowns.update { current ->
+                            current - event.playerId
+                        }
+                    }
+                    is GameEvent.PlayerReplacedByBot -> {
+                        _playerEvents.emit(
+                            PlayerConnectionEvent.ReplacedByBot(event.playerId, event.playerName)
+                        )
+                        // Clear countdown — player was replaced
+                        _reconnectCountdowns.update { current ->
+                            current - event.playerId
+                        }
+                    }
+                    else -> {}
+                }
             }
             is ServerMessage.Error -> {
                 _errors.emit(message.message)
@@ -207,10 +315,15 @@ class OnlineGameRepository(
                 _errors.emit("Room was closed")
                 disconnect()
             }
+            is ServerMessage.HostTransferred -> {
+                _playerEvents.emit(
+                    PlayerConnectionEvent.HostChanged(message.newHostName)
+                )
+            }
         }
     }
 
-    private fun applyGameView(view: PlayerGameView) {
+    private suspend fun applyGameView(view: PlayerGameView) {
         // Convert PlayerGameView into a synthetic GameState
         // The view has our hand but only card counts for others
         val players = view.players.map { info ->
@@ -251,6 +364,31 @@ class OnlineGameRepository(
         )
 
         _gameState.value = syntheticState
+
+        // On reconnect, replay events we missed while disconnected into _gameEvents
+        // so the ViewModel's gameLog catches up. Only do this once after reconnecting,
+        // not on every GameUpdate (which would duplicate events already arriving via
+        // GameEventOccurred).
+        if (needsEventReplay) {
+            needsEventReplay = false
+            val missedEvents = view.recentEvents.filter { it.timestamp > lastSeenEventTimestamp }
+            for (event in missedEvents) {
+                _gameEvents.emit(event)
+            }
+            if (view.recentEvents.isNotEmpty()) {
+                lastSeenEventTimestamp = view.recentEvents.maxOf { it.timestamp }
+            }
+        }
+
+        // Update reconnect countdowns from player info
+        val countdowns = mutableMapOf<String, ReconnectInfo>()
+        for (info in view.players) {
+            val deadline = info.reconnectDeadlineMs
+            if (info.isPendingReconnect && deadline != null) {
+                countdowns[info.id] = ReconnectInfo(info.name, deadline)
+            }
+        }
+        _reconnectCountdowns.value = countdowns
     }
 
     fun disconnect() {
