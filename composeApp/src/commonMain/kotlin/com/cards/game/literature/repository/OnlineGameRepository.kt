@@ -56,6 +56,7 @@ class OnlineGameRepository(
     private var autoReconnectJob: Job? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var shouldAutoReconnect = false
+    private var lastSeenEventTimestamp: Long = 0L
 
     var myPlayerId: String = ""
         private set
@@ -132,6 +133,7 @@ class OnlineGameRepository(
         _gameState.value = null
         _roomState.value = null
         _reconnectCountdowns.value = emptyMap()
+        lastSeenEventTimestamp = 0L
         myPlayerId = ""
         roomCode = ""
     }
@@ -266,6 +268,7 @@ class OnlineGameRepository(
             }
             is ServerMessage.GameEventOccurred -> {
                 _gameEvents.emit(message.event)
+                lastSeenEventTimestamp = message.event.timestamp
 
                 // Also emit player connection events for UI notifications
                 when (val event = message.event) {
@@ -315,7 +318,7 @@ class OnlineGameRepository(
         }
     }
 
-    private fun applyGameView(view: PlayerGameView) {
+    private suspend fun applyGameView(view: PlayerGameView) {
         // Convert PlayerGameView into a synthetic GameState
         // The view has our hand but only card counts for others
         val players = view.players.map { info ->
@@ -356,6 +359,16 @@ class OnlineGameRepository(
         )
 
         _gameState.value = syntheticState
+
+        // Emit any events we missed while disconnected into _gameEvents
+        // so the ViewModel's gameLog catches up
+        val missedEvents = view.recentEvents.filter { it.timestamp > lastSeenEventTimestamp }
+        for (event in missedEvents) {
+            _gameEvents.emit(event)
+        }
+        if (view.recentEvents.isNotEmpty()) {
+            lastSeenEventTimestamp = view.recentEvents.maxOf { it.timestamp }
+        }
 
         // Update reconnect countdowns from player info
         val countdowns = mutableMapOf<String, ReconnectInfo>()
