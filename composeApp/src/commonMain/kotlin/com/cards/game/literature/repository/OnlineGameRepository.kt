@@ -273,16 +273,29 @@ class OnlineGameRepository(
                         _playerEvents.emit(
                             PlayerConnectionEvent.Disconnected(event.playerId, event.playerName)
                         )
+                        // Show reconnect countdown immediately (estimate 2-min deadline)
+                        val deadline = event.timestamp + 2 * 60_000L
+                        _reconnectCountdowns.update { current ->
+                            current + (event.playerId to ReconnectInfo(event.playerName, deadline))
+                        }
                     }
                     is GameEvent.PlayerReconnected -> {
                         _playerEvents.emit(
                             PlayerConnectionEvent.Reconnected(event.playerId, event.playerName)
                         )
+                        // Clear countdown immediately
+                        _reconnectCountdowns.update { current ->
+                            current - event.playerId
+                        }
                     }
                     is GameEvent.PlayerReplacedByBot -> {
                         _playerEvents.emit(
                             PlayerConnectionEvent.ReplacedByBot(event.playerId, event.playerName)
                         )
+                        // Clear countdown — player was replaced
+                        _reconnectCountdowns.update { current ->
+                            current - event.playerId
+                        }
                     }
                     else -> {}
                 }

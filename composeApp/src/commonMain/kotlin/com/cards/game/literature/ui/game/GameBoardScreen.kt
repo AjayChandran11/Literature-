@@ -296,15 +296,6 @@ private fun consolidateEvents(events: List<GameEvent>, limit: Int = 5): List<Str
             is GameEvent.GameEnded -> {
                 messages.add(StripMessage("★", GoldAccent, "Game Over!"))
             }
-            is GameEvent.PlayerDisconnected -> {
-                messages.add(StripMessage("⚠", CardRed, "${event.playerName} lost connection"))
-            }
-            is GameEvent.PlayerReconnected -> {
-                messages.add(StripMessage("✓", LightGreen, "${event.playerName} reconnected"))
-            }
-            is GameEvent.PlayerReplacedByBot -> {
-                messages.add(StripMessage("⚙", GoldAccent, "${event.playerName} replaced by bot"))
-            }
             else -> {}
         }
         i++
@@ -433,11 +424,13 @@ private fun PersistentHeader(uiState: GameUiState, headerOverlay: @Composable ()
 
 @Composable
 private fun TurnIndicatorBanner(uiState: GameUiState) {
-    // Local 60s countdown, reset when currentPlayerId changes
+    // Local 60s countdown, reset on every game state change (ask, claim, turn change)
     var secondsRemaining by remember { mutableStateOf(60) }
-    val currentPlayerId = uiState.activePlayerId
 
-    LaunchedEffect(currentPlayerId) {
+    // Use activePlayerId + myHand size + scores as a composite key that changes on every action
+    val timerKey = "${uiState.activePlayerId}_${uiState.myHand.size}_${uiState.myTeamScore}_${uiState.opponentTeamScore}"
+
+    LaunchedEffect(timerKey) {
         secondsRemaining = 60
         while (secondsRemaining > 0) {
             delay(1000L)
