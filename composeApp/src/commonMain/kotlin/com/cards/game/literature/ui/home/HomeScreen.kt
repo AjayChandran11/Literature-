@@ -136,7 +136,8 @@ fun HomeScreen(
 fun GameSetupDialog(
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit,
-    confirmLabel: String = "Start Game"
+    confirmLabel: String = "Start Game",
+    allowEightPlayers: Boolean = false
 ) {
     var selectedCount by remember { mutableIntStateOf(6) }
     val primary = MaterialTheme.colorScheme.primary
@@ -181,7 +182,7 @@ fun GameSetupDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    listOf(4, 6, 8).forEach { count ->
+                    (if (allowEightPlayers) listOf(4, 6, 8) else listOf(4, 6)).forEach { count ->
                         val isSelected = selectedCount == count
                         val teams = count / 2
 

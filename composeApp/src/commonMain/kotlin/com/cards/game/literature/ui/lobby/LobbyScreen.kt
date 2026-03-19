@@ -138,7 +138,8 @@ fun LobbyScreen(
                 showCreateDialog = false
                 viewModel.createRoom(playerName, playerCount)
             },
-            confirmLabel = "Create Room"
+            confirmLabel = "Create Room",
+            allowEightPlayers = true
         )
     }
 }
