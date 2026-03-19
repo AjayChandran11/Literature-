@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cards.game.literature.protocol.RoomPhase
 import com.cards.game.literature.protocol.RoomState
+import com.cards.game.literature.repository.ConnectionState
 import com.cards.game.literature.repository.OnlineGameRepository
 import com.cards.game.literature.repository.PlayerConnectionEvent
 import kotlinx.coroutines.flow.*
@@ -32,6 +33,8 @@ class WaitingRoomViewModel(
 
     private val _uiState = MutableStateFlow(WaitingRoomUiState())
     val uiState: StateFlow<WaitingRoomUiState> = _uiState.asStateFlow()
+
+    val connectionState: StateFlow<ConnectionState> = onlineRepository.connectionState
 
     private val _navigateToGame = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val navigateToGame: Flow<Unit> = _navigateToGame.asSharedFlow()

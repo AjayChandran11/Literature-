@@ -1,16 +1,12 @@
 package com.cards.game.literature.ui.navigation
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -21,6 +17,7 @@ import com.cards.game.literature.model.currentTimeMillis
 import com.cards.game.literature.repository.ConnectionState
 import com.cards.game.literature.repository.OnlineGameRepository
 import com.cards.game.literature.repository.ReconnectInfo
+import com.cards.game.literature.ui.common.ConnectionBanner
 import com.cards.game.literature.ui.game.GameBoardContent
 import com.cards.game.literature.viewmodel.GameViewModel
 import kotlinx.coroutines.delay
@@ -39,7 +36,6 @@ fun OnlineGameScreen(
     val connectionState by onlineRepository.connectionState.collectAsState()
     val reconnectCountdowns by onlineRepository.reconnectCountdowns.collectAsState()
     var showQuitDialog by remember { mutableStateOf(false) }
-    var bannerState by remember { mutableStateOf<BannerState?>(null) }
     val scope = rememberCoroutineScope()
 
     // Reconnect on app resume
@@ -83,31 +79,6 @@ fun OnlineGameScreen(
         )
     }
 
-    // Drive the single connection banner
-    LaunchedEffect(Unit) {
-        var wasDisconnected = false
-        snapshotFlow { connectionState }.collect { current ->
-            when (current) {
-                ConnectionState.DISCONNECTED -> {
-                    wasDisconnected = true
-                    bannerState = BannerState.DISCONNECTED
-                }
-                ConnectionState.RECONNECTING, ConnectionState.CONNECTING -> {
-                    wasDisconnected = true
-                    bannerState = BannerState.RECONNECTING
-                }
-                ConnectionState.CONNECTED -> {
-                    if (wasDisconnected) {
-                        bannerState = BannerState.RECONNECTED
-                        delay(1000L)
-                        bannerState = null
-                    }
-                    wasDisconnected = false
-                }
-            }
-        }
-    }
-
     // Navigate to result when game ends
     LaunchedEffect(uiState.phase) {
         if (uiState.phase == GamePhase.FINISHED) {
@@ -118,58 +89,7 @@ fun OnlineGameScreen(
     GameBoardContent(
         viewModel = viewModel,
         headerOverlay = {
-            // Connection status banner (slides in/out as one unit)
-            AnimatedVisibility(
-                visible = bannerState != null,
-                enter = expandVertically(),
-                exit = shrinkVertically()
-            ) {
-                val bgColor = when (bannerState) {
-                    BannerState.DISCONNECTED -> MaterialTheme.colorScheme.error.copy(alpha = 0.9f)
-                    BannerState.RECONNECTING -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.9f)
-                    BannerState.RECONNECTED -> Color(0xFF388E3C).copy(alpha = 0.9f)
-                    null -> Color.Transparent
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(bgColor)
-                        .padding(8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        when (bannerState) {
-                            BannerState.RECONNECTING -> {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    "Reconnecting...",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                            }
-                            BannerState.RECONNECTED -> Text(
-                                "Reconnected",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.White
-                            )
-                            else -> Text(
-                                "Disconnected",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onError
-                            )
-                        }
-                    }
-                }
-            }
+            ConnectionBanner(connectionState = onlineRepository.connectionState)
 
             // Reconnect countdown banners for disconnected players
             ReconnectCountdownBanners(reconnectCountdowns)
@@ -210,5 +130,3 @@ private fun ReconnectCountdownBanners(countdowns: Map<String, ReconnectInfo>) {
         }
     }
 }
-
-private enum class BannerState { DISCONNECTED, RECONNECTING, RECONNECTED }

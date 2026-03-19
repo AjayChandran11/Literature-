@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cards.game.literature.ui.common.ConnectionBanner
 import com.cards.game.literature.viewmodel.WaitingRoomViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -76,10 +77,19 @@ fun WaitingRoomScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { scaffoldPadding ->
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(scaffoldPadding)
+    ) {
+        ConnectionBanner(
+            connectionState = viewModel.connectionState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -267,5 +277,6 @@ fun WaitingRoomScreen(
             }
         }
     }
+    } // Box
     } // Scaffold
 }
