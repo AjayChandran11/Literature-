@@ -7,6 +7,7 @@ import com.cards.game.literature.protocol.RoomState
 import com.cards.game.literature.repository.ConnectionState
 import com.cards.game.literature.repository.OnlineGameRepository
 import com.cards.game.literature.repository.PlayerConnectionEvent
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -77,6 +78,12 @@ class WaitingRoomViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isStarting = true) }
             onlineRepository.startGame(fillWithBots)
+            // Reset after timeout so the button doesn't stay stuck if server doesn't respond
+            delay(5000L)
+            _uiState.update {
+                if (it.isStarting) it.copy(isStarting = false, errorMessage = "Failed to start game. Please go back and try again.")
+                else it
+            }
         }
     }
 
