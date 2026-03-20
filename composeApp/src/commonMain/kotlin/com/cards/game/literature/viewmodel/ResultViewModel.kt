@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.asStateFlow
 data class ResultUiState(
     val myTeamScore: Int = 0,
     val opponentTeamScore: Int = 0,
-    val myTeamName: String = "Your Team",
-    val opponentTeamName: String = "Opponents",
+    val myTeamName: String = "",
+    val opponentTeamName: String = "",
     val isWinner: Boolean = false,
     val isDraw: Boolean = false,
     val halfSuitBreakdown: List<HalfSuitStatus> = emptyList(),
@@ -38,8 +38,8 @@ class ResultViewModel(
             _uiState.value = ResultUiState(
                 myTeamScore = myScore,
                 opponentTeamScore = oppScore,
-                myTeamName = myTeam?.name ?: "Your Team",
-                opponentTeamName = opponentTeam?.name ?: "Opponents",
+                myTeamName = myTeam?.name ?: "",
+                opponentTeamName = opponentTeam?.name ?: "",
                 isWinner = myScore > oppScore,
                 isDraw = myScore == oppScore,
                 halfSuitBreakdown = state.halfSuitStatuses,

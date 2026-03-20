@@ -15,10 +15,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.cards.game.literature.model.HalfSuitStatus
 import com.cards.game.literature.ui.theme.CardRed
 import com.cards.game.literature.ui.theme.LightGreen
+import literature.composeapp.generated.resources.Res
+import literature.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun DeckTracker(
@@ -60,7 +62,10 @@ fun DeckTracker(
                     maxLines = 2,
                 )
                 if (status.claimedByTeamId != null) {
-                    val label = if (status.claimedByTeamId == myTeamId) "Ours" else "Theirs"
+                    val label = if (status.claimedByTeamId == myTeamId)
+                        stringResource(Res.string.deck_tracker_ours)
+                    else
+                        stringResource(Res.string.deck_tracker_theirs)
                     val labelColor = if (status.claimedByTeamId == myTeamId) LightGreen else CardRed
                     Text(
                         text = label,
@@ -70,7 +75,7 @@ fun DeckTracker(
                     )
                 } else {
                     Text(
-                        text = "Open",
+                        text = stringResource(Res.string.deck_tracker_open),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray
                     )

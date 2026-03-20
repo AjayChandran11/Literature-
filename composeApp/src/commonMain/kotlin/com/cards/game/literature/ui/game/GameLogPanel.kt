@@ -21,6 +21,9 @@ import androidx.compose.ui.unit.sp
 import com.cards.game.literature.model.GameEvent
 import com.cards.game.literature.ui.theme.CardRed
 import com.cards.game.literature.ui.theme.LightGreen
+import literature.composeapp.generated.resources.Res
+import literature.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun GameLogPanel(events: List<GameEvent>, modifier: Modifier = Modifier) {
@@ -45,13 +48,13 @@ fun GameLogPanel(events: List<GameEvent>, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Game Log",
+                stringResource(Res.string.game_log_title),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.secondary
             )
             Text(
-                if (expanded) "Collapse" else "Expand",
+                if (expanded) stringResource(Res.string.game_log_collapse) else stringResource(Res.string.game_log_expand),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -61,7 +64,7 @@ fun GameLogPanel(events: List<GameEvent>, modifier: Modifier = Modifier) {
 
         if (recentEvents.isEmpty()) {
             Text(
-                "Game started!",
+                stringResource(Res.string.game_log_game_started),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -84,20 +87,20 @@ fun GameLogEntry(event: GameEvent, fontSize: TextUnit = 14.sp) {
     val (text, color) = when (event) {
         is GameEvent.CardAsked -> {
             if (event.success) {
-                "${event.askerName} got ${event.card.displayName} from ${event.targetName}" to LightGreen
+                stringResource(Res.string.game_log_got_card, event.askerName, event.card.displayName, event.targetName) to LightGreen
             } else {
-                "${event.askerName} asked ${event.targetName} for ${event.card.displayName} - No!" to CardRed
+                stringResource(Res.string.game_log_asked_no, event.askerName, event.targetName, event.card.displayName) to CardRed
             }
         }
         is GameEvent.DeckClaimed -> {
             if (event.correct) {
-                "${event.claimerName} claimed ${event.halfSuit.displayName} correctly!" to LightGreen
+                stringResource(Res.string.game_log_claimed_correctly, event.claimerName, event.halfSuit.displayName) to LightGreen
             } else {
-                "${event.claimerName} claimed ${event.halfSuit.displayName} incorrectly!" to CardRed
+                stringResource(Res.string.game_log_claimed_incorrectly, event.claimerName, event.halfSuit.displayName) to CardRed
             }
         }
         is GameEvent.GameEnded -> {
-            "Game Over!" to MaterialTheme.colorScheme.secondary
+            stringResource(Res.string.game_log_game_over) to MaterialTheme.colorScheme.secondary
         }
         else -> "" to Color.Gray
     }

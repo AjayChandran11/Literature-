@@ -1,9 +1,6 @@
 package com.cards.game.literature.ui.navigation
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -20,10 +17,14 @@ import com.cards.game.literature.model.currentTimeMillis
 import com.cards.game.literature.repository.ConnectionState
 import com.cards.game.literature.repository.OnlineGameRepository
 import com.cards.game.literature.repository.ReconnectInfo
+import com.cards.game.literature.ui.common.ConnectionBanner
 import com.cards.game.literature.ui.game.GameBoardContent
 import com.cards.game.literature.viewmodel.GameViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import literature.composeapp.generated.resources.Res
+import literature.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.qualifier.named
 
@@ -59,8 +60,8 @@ fun OnlineGameScreen(
     if (showQuitDialog) {
         AlertDialog(
             onDismissRequest = { showQuitDialog = false },
-            title = { Text("Leave Game?", fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to leave? A bot will take over immediately.") },
+            title = { Text(stringResource(Res.string.dialog_leave_online_game_title), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(Res.string.dialog_leave_online_game_message)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -70,12 +71,12 @@ fun OnlineGameScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Leave")
+                    Text(stringResource(Res.string.button_leave_game))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showQuitDialog = false }) {
-                    Text("Keep Playing")
+                    Text(stringResource(Res.string.button_keep_playing))
                 }
             }
         )
@@ -91,50 +92,7 @@ fun OnlineGameScreen(
     GameBoardContent(
         viewModel = viewModel,
         headerOverlay = {
-            // Connection status banner (slides down below score bar)
-            AnimatedVisibility(
-                visible = connectionState == ConnectionState.RECONNECTING || connectionState == ConnectionState.DISCONNECTED,
-                enter = expandVertically(),
-                exit = shrinkVertically()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            if (connectionState == ConnectionState.RECONNECTING)
-                                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.9f)
-                            else
-                                MaterialTheme.colorScheme.error.copy(alpha = 0.9f)
-                        )
-                        .padding(8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        if (connectionState == ConnectionState.RECONNECTING) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                "Reconnecting...",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                        } else {
-                            Text(
-                                "Disconnected",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onError
-                            )
-                        }
-                    }
-                }
-            }
+            ConnectionBanner(connectionState = onlineRepository.connectionState)
 
             // Reconnect countdown banners for disconnected players
             ReconnectCountdownBanners(reconnectCountdowns)
@@ -168,7 +126,7 @@ private fun ReconnectCountdownBanners(countdowns: Map<String, ReconnectInfo>) {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                "Waiting for ${info.playerName} to reconnect... (${secondsLeft}s)",
+                stringResource(Res.string.reconnect_waiting, info.playerName, secondsLeft),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.secondary
             )

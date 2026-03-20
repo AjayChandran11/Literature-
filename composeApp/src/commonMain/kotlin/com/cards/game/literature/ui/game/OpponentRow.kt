@@ -21,6 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cards.game.literature.ui.theme.CardRed
 import com.cards.game.literature.viewmodel.PlayerInfo
+import literature.composeapp.generated.resources.Res
+import literature.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OpponentRow(opponents: List<PlayerInfo>, modifier: Modifier = Modifier) {
@@ -93,7 +96,7 @@ fun PlayerAvatar(player: PlayerInfo, isOpponent: Boolean) {
             maxLines = 1
         )
         Text(
-            text = "${player.cardCount} cards",
+            text = stringResource(Res.string.player_card_count, player.cardCount),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha)
         )

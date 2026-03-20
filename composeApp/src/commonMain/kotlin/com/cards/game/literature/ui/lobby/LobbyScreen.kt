@@ -9,9 +9,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.cards.game.literature.network.NetworkMonitor
+import com.cards.game.literature.ui.home.GameSetupDialog
 import com.cards.game.literature.viewmodel.LobbyViewModel
+import literature.composeapp.generated.resources.Res
+import literature.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,13 +44,13 @@ fun LobbyScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Play Online",
+            text = stringResource(Res.string.home_play_online),
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.secondary
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Playing as $playerName",
+            text = stringResource(Res.string.lobby_playing_as, playerName),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -63,14 +66,14 @@ fun LobbyScreen(
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             enabled = !uiState.isLoading && isNetworkAvailable
         ) {
-            Text("Create Room", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(stringResource(Res.string.lobby_create_room), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         // Join Room
         Text(
-            text = "or join with a code",
+            text = stringResource(Res.string.lobby_join_with_code),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -79,7 +82,7 @@ fun LobbyScreen(
         OutlinedTextField(
             value = joinRoomCode,
             onValueChange = { joinRoomCode = it.uppercase().take(6) },
-            label = { Text("Room Code") },
+            label = { Text(stringResource(Res.string.lobby_room_code_hint)) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(0.8f),
             colors = OutlinedTextFieldDefaults.colors(
@@ -105,14 +108,14 @@ fun LobbyScreen(
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Text("Join Room", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(stringResource(Res.string.lobby_join_room), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
         TextButton(onClick = onBack) {
-            Text("Back", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(Res.string.button_back), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
         uiState.errorMessage?.let { error ->
@@ -131,60 +134,14 @@ fun LobbyScreen(
     }
 
     if (showCreateDialog) {
-        CreateRoomDialog(
+        GameSetupDialog(
             onDismiss = { showCreateDialog = false },
             onConfirm = { playerCount ->
                 showCreateDialog = false
                 viewModel.createRoom(playerName, playerCount)
-            }
+            },
+            confirmLabel = stringResource(Res.string.lobby_create_room),
+            allowEightPlayers = true
         )
     }
-}
-
-@Composable
-fun CreateRoomDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (Int) -> Unit
-) {
-    var selectedCount by remember { mutableIntStateOf(6) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Create Room", fontWeight = FontWeight.Bold) },
-        text = {
-            Column {
-                Text("Select number of players:", color = MaterialTheme.colorScheme.onSurface)
-                Spacer(modifier = Modifier.height(16.dp))
-                listOf(4, 6, 8).forEach { count ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = selectedCount == count,
-                            onClick = { selectedCount = count },
-                            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.secondary)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "$count Players (${count / 2}v${count / 2})",
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(onClick = { onConfirm(selectedCount) }) {
-                Text("Create")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
 }

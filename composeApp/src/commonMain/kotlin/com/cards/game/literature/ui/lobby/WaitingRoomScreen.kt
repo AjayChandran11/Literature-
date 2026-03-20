@@ -16,7 +16,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cards.game.literature.repository.PlayerConnectionEvent
+import com.cards.game.literature.ui.common.ConnectionBanner
 import com.cards.game.literature.viewmodel.WaitingRoomViewModel
+import literature.composeapp.generated.resources.Res
+import literature.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -36,8 +41,8 @@ fun WaitingRoomScreen(
     if (showLeaveDialog) {
         AlertDialog(
             onDismissRequest = { showLeaveDialog = false },
-            title = { Text("Leave Room?", fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to leave the room?") },
+            title = { Text(stringResource(Res.string.dialog_leave_room_title), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(Res.string.dialog_leave_room_message)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -47,18 +52,24 @@ fun WaitingRoomScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Leave")
+                    Text(stringResource(Res.string.button_leave))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showLeaveDialog = false }) {
-                    Text("Stay")
+                    Text(stringResource(Res.string.button_stay))
                 }
             }
         )
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val disconnectedFmt = stringResource(Res.string.snackbar_player_disconnected)
+    val reconnectedFmt = stringResource(Res.string.snackbar_player_reconnected)
+    val hostChangedFmt = stringResource(Res.string.snackbar_host_changed)
+    val replacedByBotFmt = stringResource(Res.string.snackbar_replaced_by_bot)
+    val startGameTimeoutMsg = stringResource(Res.string.error_start_game_timeout)
 
     LaunchedEffect(Unit) {
         viewModel.navigateToGame.collect {
@@ -67,7 +78,13 @@ fun WaitingRoomScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.snackbarEvents.collect { message ->
+        viewModel.snackbarEvents.collect { event ->
+            val message = when (event) {
+                is PlayerConnectionEvent.Disconnected -> disconnectedFmt.format(event.playerName)
+                is PlayerConnectionEvent.Reconnected -> reconnectedFmt.format(event.playerName)
+                is PlayerConnectionEvent.HostChanged -> hostChangedFmt.format(event.newHostName)
+                is PlayerConnectionEvent.ReplacedByBot -> replacedByBotFmt.format(event.playerName)
+            }
             snackbarHostState.showSnackbar(message, duration = SnackbarDuration.Short)
         }
     }
@@ -76,17 +93,26 @@ fun WaitingRoomScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { scaffoldPadding ->
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(scaffoldPadding)
+    ) {
+        ConnectionBanner(
+            connectionState = viewModel.connectionState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = "Waiting Room",
+            text = stringResource(Res.string.waiting_room_title),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.secondary
         )
@@ -103,7 +129,7 @@ fun WaitingRoomScreen(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "Room Code",
+                    text = stringResource(Res.string.waiting_room_code_label),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -114,7 +140,7 @@ fun WaitingRoomScreen(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = "Share this code with friends",
+                    text = stringResource(Res.string.waiting_room_share_code),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -124,7 +150,7 @@ fun WaitingRoomScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Players (${uiState.players.size}/${uiState.targetPlayerCount})",
+            text = stringResource(Res.string.waiting_room_players_count, uiState.players.size, uiState.targetPlayerCount),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
@@ -170,7 +196,10 @@ fun WaitingRoomScreen(
                         )
 
                         Text(
-                            text = if (player.teamId == "team_1") "Team 1" else "Team 2",
+                            text = if (player.teamId == "team_1")
+                                stringResource(Res.string.waiting_room_team_1)
+                            else
+                                stringResource(Res.string.waiting_room_team_2),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -182,7 +211,7 @@ fun WaitingRoomScreen(
                                 color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)
                             ) {
                                 Text(
-                                    text = "HOST",
+                                    text = stringResource(Res.string.player_badge_host),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.secondary,
@@ -210,7 +239,7 @@ fun WaitingRoomScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Fill empty slots with bots",
+                    text = stringResource(Res.string.waiting_room_fill_bots),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -232,12 +261,12 @@ fun WaitingRoomScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text("Start Game", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(stringResource(Res.string.button_start_game), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 }
             }
         } else {
             Text(
-                text = "Waiting for host to start...",
+                text = stringResource(Res.string.waiting_room_waiting_for_host),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -250,10 +279,14 @@ fun WaitingRoomScreen(
             viewModel.leaveRoom()
             onLeave()
         }) {
-            Text("Leave Room", color = MaterialTheme.colorScheme.error)
+            Text(stringResource(Res.string.button_leave_room), color = MaterialTheme.colorScheme.error)
         }
 
-        uiState.errorMessage?.let { error ->
+        val errorToShow = when {
+            uiState.isStartGameTimedOut -> startGameTimeoutMsg
+            else -> uiState.errorMessage
+        }
+        errorToShow?.let { error ->
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = error,
@@ -267,5 +300,6 @@ fun WaitingRoomScreen(
             }
         }
     }
+    } // Box
     } // Scaffold
 }

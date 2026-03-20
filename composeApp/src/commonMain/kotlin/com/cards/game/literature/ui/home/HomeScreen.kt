@@ -16,6 +16,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.cards.game.literature.ui.theme.CardRed
+import literature.composeapp.generated.resources.Res
+import literature.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +32,12 @@ fun HomeScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Corner suit symbols
-        val cornerSuits = listOf("\u2660", "\u2665", "\u2666", "\u2663")
+        val cornerSuits = listOf(
+            stringResource(Res.string.suit_spades),
+            stringResource(Res.string.suit_hearts),
+            stringResource(Res.string.suit_diamonds),
+            stringResource(Res.string.suit_clubs)
+        )
         val cornerColors = listOf(onBackground, CardRed, CardRed, onBackground)
         val cornerAlignments = listOf(
             Alignment.TopStart, Alignment.TopEnd,
@@ -54,20 +62,20 @@ fun HomeScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "\u2660 \u2665 \u2666 \u2663",
+                text = stringResource(Res.string.suits_display),
                 fontSize = 48.sp,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.secondary
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Literature",
+                text = stringResource(Res.string.home_title),
                 style = MaterialTheme.typography.displayMedium,
                 color = MaterialTheme.colorScheme.secondary
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "The Classic Card Game",
+                text = stringResource(Res.string.home_subtitle),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -76,7 +84,7 @@ fun HomeScreen(
             OutlinedTextField(
                 value = playerName,
                 onValueChange = { playerName = it },
-                label = { Text("Your Name") },
+                label = { Text(stringResource(Res.string.home_player_name_hint)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(0.8f),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -100,7 +108,7 @@ fun HomeScreen(
                     disabledContainerColor = MaterialTheme.colorScheme.outline
                 )
             ) {
-                Text("New Game", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(stringResource(Res.string.home_new_game), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -116,7 +124,7 @@ fun HomeScreen(
                     contentColor = MaterialTheme.colorScheme.secondary
                 )
             ) {
-                Text("Play Online", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(stringResource(Res.string.home_play_online), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -135,7 +143,9 @@ fun HomeScreen(
 @Composable
 fun GameSetupDialog(
     onDismiss: () -> Unit,
-    onConfirm: (Int) -> Unit
+    onConfirm: (Int) -> Unit,
+    confirmLabel: String = stringResource(Res.string.button_start_game),
+    allowEightPlayers: Boolean = false
 ) {
     var selectedCount by remember { mutableIntStateOf(6) }
     val primary = MaterialTheme.colorScheme.primary
@@ -155,20 +165,20 @@ fun GameSetupDialog(
             ) {
                 // Header
                 Text(
-                    text = "♠ ♥ ♦ ♣",
+                    text = stringResource(Res.string.suits_display),
                     fontSize = 22.sp,
                     color = secondary,
                     letterSpacing = 6.sp
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Game Setup",
+                    text = stringResource(Res.string.game_setup_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = onSurface
                 )
                 Text(
-                    text = "How many players?",
+                    text = stringResource(Res.string.game_setup_players_question),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -180,7 +190,7 @@ fun GameSetupDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    listOf(4, 6, 8).forEach { count ->
+                    (if (allowEightPlayers) listOf(4, 6, 8) else listOf(4, 6)).forEach { count ->
                         val isSelected = selectedCount == count
                         val teams = count / 2
 
@@ -209,13 +219,13 @@ fun GameSetupDialog(
                                     color = if (isSelected) primary else onSurface
                                 )
                                 Text(
-                                    text = "players",
+                                    text = stringResource(Res.string.game_setup_players_label),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = if (isSelected) primary else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(
-                                    text = "${teams}v${teams}",
+                                    text = stringResource(Res.string.game_setup_teams_format, teams, teams),
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     color = if (isSelected) secondary else MaterialTheme.colorScheme.onSurfaceVariant
@@ -237,7 +247,7 @@ fun GameSetupDialog(
                     colors = ButtonDefaults.buttonColors(containerColor = primary)
                 ) {
                     Text(
-                        "Start Game",
+                        confirmLabel,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -248,7 +258,7 @@ fun GameSetupDialog(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        "Cancel",
+                        stringResource(Res.string.button_cancel),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }

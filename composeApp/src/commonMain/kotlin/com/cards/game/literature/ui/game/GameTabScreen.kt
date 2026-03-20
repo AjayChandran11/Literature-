@@ -22,10 +22,14 @@ import androidx.compose.ui.unit.sp
 import com.cards.game.literature.model.Card
 import com.cards.game.literature.model.GameEvent
 import com.cards.game.literature.viewmodel.GameUiState
+import literature.composeapp.generated.resources.Res
+import literature.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
-enum class GameTab(val label: String, val icon: ImageVector) {
-    TABLE("Table", Icons.Filled.GridView),
-    HAND("Hand", Icons.Filled.PanTool),
+enum class GameTab(val labelRes: StringResource, val icon: ImageVector) {
+    TABLE(Res.string.tab_table, Icons.Filled.GridView),
+    HAND(Res.string.tab_hand, Icons.Filled.PanTool),
 }
 
 // enum class LogFilter { ALL, ASKS, CLAIMS }  // Only used by LogTab
@@ -42,7 +46,7 @@ fun TableTab(uiState: GameUiState) {
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Center
         ) {
-            SectionLabel("OPPONENTS")
+            SectionLabel(stringResource(Res.string.label_opponents_section))
             OpponentRow(opponents = uiState.opponents)
         }
 
@@ -52,13 +56,13 @@ fun TableTab(uiState: GameUiState) {
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
-                SectionLabel("TEAMMATES")
+                SectionLabel(stringResource(Res.string.label_teammates_section))
                 TeammateRow(teammates = uiState.teammates)
             }
         }
 
         // Half-suits pinned at the bottom
-        SectionLabel("HALF-SUITS")
+        SectionLabel(stringResource(Res.string.label_half_suits_section))
         DeckTracker(
             statuses = uiState.halfSuitStatuses,
             myTeamId = uiState.myTeamId
@@ -75,7 +79,7 @@ fun HandTab(uiState: GameUiState) {
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Text(
-            "YOUR HAND",
+            stringResource(Res.string.label_your_hand),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.secondary,
