@@ -8,7 +8,7 @@ class BotPlayer(
 ) {
     suspend fun decideMove(state: GameState, botId: String): BotAction {
         // Simulate thinking time
-        delay((2500L..3000L).random())
+        delay((3500L..4000L).random())
         return strategy.decideMove(state, botId)
     }
 }

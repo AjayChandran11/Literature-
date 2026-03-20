@@ -139,7 +139,7 @@
     <string name="connection_disconnected">Disconnected</string>
 
     <!-- Result Screen -->
-    <string name="result_draw">It\'s a Draw!</string>
+    <string name="result_draw">It's a Draw!</string>
     <string name="result_win">You Win!</string>
     <string name="result_lose">You Lose!</string>
     <string name="result_breakdown_title">Half-Suit Breakdown</string>
