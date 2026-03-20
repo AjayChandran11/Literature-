@@ -15,6 +15,9 @@ import androidx.compose.ui.unit.dp
 import com.cards.game.literature.repository.ConnectionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
+import literature.composeapp.generated.resources.Res
+import literature.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 enum class BannerState { DISCONNECTED, RECONNECTING, RECONNECTED }
 
@@ -82,19 +85,19 @@ fun ConnectionBanner(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "Reconnecting...",
+                            stringResource(Res.string.connection_reconnecting),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
                     }
                     BannerState.RECONNECTED -> Text(
-                        "Reconnected",
+                        stringResource(Res.string.connection_reconnected),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White
                     )
                     else -> Text(
-                        "Disconnected",
+                        stringResource(Res.string.connection_disconnected),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onError
                     )

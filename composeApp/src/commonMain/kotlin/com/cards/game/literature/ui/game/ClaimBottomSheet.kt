@@ -18,6 +18,9 @@ import com.cards.game.literature.logic.DeckUtils
 import com.cards.game.literature.model.*
 import com.cards.game.literature.ui.theme.CardRed
 import com.cards.game.literature.viewmodel.PlayerInfo
+import literature.composeapp.generated.resources.Res
+import literature.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 enum class ClaimStep { SELECT_HALF_SUIT, ASSIGN_CARDS, CONFIRM }
 
@@ -37,6 +40,8 @@ fun ClaimBottomSheet(
     var assignments by remember { mutableStateOf<MutableMap<Card, String>>(mutableMapOf()) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    val claimYouLabel = stringResource(Res.string.claim_you)
+
     ModalBottomSheet(
         sheetState = sheetState,
         onDismissRequest = onDismiss,
@@ -50,9 +55,9 @@ fun ClaimBottomSheet(
         ) {
             Text(
                 text = when (step) {
-                    ClaimStep.SELECT_HALF_SUIT -> "Step 1: Pick Half-Suit to Claim"
-                    ClaimStep.ASSIGN_CARDS -> "Step 2: Assign Cards to Players"
-                    ClaimStep.CONFIRM -> "Confirm Your Claim"
+                    ClaimStep.SELECT_HALF_SUIT -> stringResource(Res.string.claim_step1_title)
+                    ClaimStep.ASSIGN_CARDS -> stringResource(Res.string.claim_step2_title)
+                    ClaimStep.CONFIRM -> stringResource(Res.string.claim_confirm_title)
                 },
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
@@ -90,11 +95,11 @@ fun ClaimBottomSheet(
                     val hs = selectedHalfSuit ?: return@Column
                     val allCards = DeckUtils.getAllCardsForHalfSuit(hs)
                     val allTeamPlayers = listOf(
-                        PlayerInfo(myPlayerId, "You", myHand.size, true, false)
+                        PlayerInfo(myPlayerId, claimYouLabel, myHand.size, true, false)
                     ) + teammates
 
                     Text(
-                        "Assign each card to the teammate who holds it:",
+                        stringResource(Res.string.claim_assign_instruction),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -104,8 +109,8 @@ fun ClaimBottomSheet(
                         val isMyCard = card in myHand
                         val currentAssignment = assignments[card]
                         val assignedName = when (currentAssignment) {
-                            myPlayerId -> "You"
-                            null -> "Unassigned"
+                            myPlayerId -> claimYouLabel
+                            null -> stringResource(Res.string.claim_unassigned)
                             else -> allTeamPlayers.find { it.id == currentAssignment }?.name ?: "?"
                         }
 
@@ -134,7 +139,7 @@ fun ClaimBottomSheet(
                                         modifier = Modifier.padding(horizontal = 14.dp)
                                     ) {
                                         Text(
-                                            "You \u2713",
+                                            stringResource(Res.string.claim_you_assigned),
                                             style = MaterialTheme.typography.labelLarge,
                                             color = MaterialTheme.colorScheme.primary
                                         )
@@ -195,14 +200,14 @@ fun ClaimBottomSheet(
                             onClick = { step = ClaimStep.SELECT_HALF_SUIT },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Back")
+                            Text(stringResource(Res.string.button_back))
                         }
                         Button(
                             onClick = { step = ClaimStep.CONFIRM },
                             enabled = allAssigned,
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Review")
+                            Text(stringResource(Res.string.button_review))
                         }
                     }
                 }
@@ -210,20 +215,20 @@ fun ClaimBottomSheet(
                     val hs = selectedHalfSuit ?: return@Column
 
                     Text(
-                        "Claiming ${hs.displayName}",
+                        stringResource(Res.string.claim_claiming, hs.displayName),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "\u26a0\ufe0f If any assignment is wrong, the opponent gets the point!",
+                        stringResource(Res.string.claim_warning),
                         style = MaterialTheme.typography.titleSmall,
                         color = CardRed
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
                     assignments.entries.groupBy { it.value }.forEach { (playerId, cards) ->
-                        val name = if (playerId == myPlayerId) "You"
+                        val name = if (playerId == myPlayerId) claimYouLabel
                         else teammates.find { it.id == playerId }?.name ?: "?"
                         Row(
                             modifier = Modifier
@@ -255,7 +260,7 @@ fun ClaimBottomSheet(
                             onClick = { step = ClaimStep.ASSIGN_CARDS },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Back")
+                            Text(stringResource(Res.string.button_back))
                         }
                         Button(
                             onClick = {
@@ -274,7 +279,7 @@ fun ClaimBottomSheet(
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                         ) {
-                            Text("CLAIM!", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSecondary)
+                            Text(stringResource(Res.string.button_claim), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSecondary)
                         }
                     }
                 }

@@ -28,6 +28,9 @@ import com.cards.game.literature.ui.theme.GoldAccent
 import com.cards.game.literature.ui.theme.LightGreen
 import com.cards.game.literature.viewmodel.GameUiState
 import com.cards.game.literature.viewmodel.GameViewModel
+import literature.composeapp.generated.resources.Res
+import literature.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -46,8 +49,8 @@ fun GameBoardScreen(
     if (showQuitDialog) {
         AlertDialog(
             onDismissRequest = { showQuitDialog = false },
-            title = { Text("Quit Game?", fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to quit? Your progress will be lost.") },
+            title = { Text(stringResource(Res.string.dialog_quit_game_title), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(Res.string.dialog_quit_game_message)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -56,12 +59,12 @@ fun GameBoardScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Quit")
+                    Text(stringResource(Res.string.button_quit))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showQuitDialog = false }) {
-                    Text("Keep Playing")
+                    Text(stringResource(Res.string.button_keep_playing))
                 }
             }
         )
@@ -175,9 +178,10 @@ fun GameBoardContent(
                 windowInsets = WindowInsets()
             ) {
                 GameTab.entries.forEach { tab ->
+                    val tabLabel = stringResource(tab.labelRes)
                     NavigationBarItem(
-                        icon = { Icon(tab.icon, contentDescription = tab.label) },
-                        label = { Text(tab.label, style = MaterialTheme.typography.bodyLarge) },
+                        icon = { Icon(tab.icon, contentDescription = tabLabel) },
+                        label = { Text(tabLabel, style = MaterialTheme.typography.bodyLarge) },
                         selected = selectedTab == tab,
                         onClick = { selectedTab = tab },
                         colors = NavigationBarItemDefaults.colors(
@@ -246,8 +250,18 @@ private data class StripMessage(
  * Consolidate raw game events into readable strip messages.
  * - Groups consecutive successful asks by the same asker into one line.
  * - Returns at most [limit] messages.
+ * - Format functions are passed in from the composable context to avoid hardcoded strings.
  */
-private fun consolidateEvents(events: List<GameEvent>, limit: Int = 5): List<StripMessage> {
+private fun consolidateEvents(
+    events: List<GameEvent>,
+    fmtGot: (askerName: String, cards: String, targetName: String) -> String,
+    fmtDenied: (askerName: String, targetName: String, cardName: String) -> String,
+    fmtClaimedOk: (claimerName: String, halfSuit: String) -> String,
+    fmtClaimedBad: (claimerName: String, halfSuit: String) -> String,
+    textGameOver: String,
+    fmtTimedOut: (playerName: String) -> String,
+    limit: Int = 5
+): List<StripMessage> {
     val messages = mutableListOf<StripMessage>()
     var i = 0
     while (i < events.size) {
@@ -269,17 +283,12 @@ private fun consolidateEvents(events: List<GameEvent>, limit: Int = 5): List<Str
                             } else break
                         }
                     }
-                    val text = if (group.size == 1) {
-                        "${event.askerName} got ${event.card.displayName} from ${event.targetName}"
-                    } else {
-                        val cards = group.joinToString(", ") { it.card.displayName }
-                        "${event.askerName} got $cards from ${event.targetName}"
-                    }
-                    messages.add(StripMessage("✓", LightGreen, text))
+                    val cards = group.joinToString(", ") { it.card.displayName }
+                    messages.add(StripMessage("✓", LightGreen, fmtGot(event.askerName, cards, event.targetName)))
                 } else {
                     messages.add(StripMessage(
                         "✗", CardRed,
-                        "${event.askerName} asked ${event.targetName} for ${event.card.displayName} — No!"
+                        fmtDenied(event.askerName, event.targetName, event.card.displayName)
                     ))
                 }
             }
@@ -287,20 +296,20 @@ private fun consolidateEvents(events: List<GameEvent>, limit: Int = 5): List<Str
                 if (event.correct) {
                     messages.add(StripMessage(
                         "✓", LightGreen,
-                        "${event.claimerName} claimed ${event.halfSuit.displayName} correctly!"
+                        fmtClaimedOk(event.claimerName, event.halfSuit.displayName)
                     ))
                 } else {
                     messages.add(StripMessage(
                         "✗", CardRed,
-                        "${event.claimerName} claimed ${event.halfSuit.displayName} incorrectly!"
+                        fmtClaimedBad(event.claimerName, event.halfSuit.displayName)
                     ))
                 }
             }
             is GameEvent.GameEnded -> {
-                messages.add(StripMessage("★", GoldAccent, "Game Over!"))
+                messages.add(StripMessage("★", GoldAccent, textGameOver))
             }
             is GameEvent.TurnTimedOut -> {
-                messages.add(StripMessage("⏱", CardRed, "${event.playerName} ran out of time"))
+                messages.add(StripMessage("⏱", CardRed, fmtTimedOut(event.playerName)))
             }
             else -> {}
         }
@@ -398,7 +407,23 @@ private fun LastEventStrip(events: List<GameEvent>) {
 
     if (displayEvents.isEmpty()) return
 
-    val messages = consolidateEvents(displayEvents)
+    // Pre-retrieve format strings in composable context
+    val fmtGotCard = stringResource(Res.string.game_log_got_card)
+    val fmtAskedNoStrip = stringResource(Res.string.game_log_asked_no_strip)
+    val fmtClaimedOk = stringResource(Res.string.game_log_claimed_correctly)
+    val fmtClaimedBad = stringResource(Res.string.game_log_claimed_incorrectly)
+    val textGameOver = stringResource(Res.string.game_log_game_over)
+    val fmtTimedOut = stringResource(Res.string.game_log_timed_out)
+
+    val messages = consolidateEvents(
+        events = displayEvents,
+        fmtGot = { a, c, t -> fmtGotCard.format(a, c, t) },
+        fmtDenied = { a, t, c -> fmtAskedNoStrip.format(a, t, c) },
+        fmtClaimedOk = { c, h -> fmtClaimedOk.format(c, h) },
+        fmtClaimedBad = { c, h -> fmtClaimedBad.format(c, h) },
+        textGameOver = textGameOver,
+        fmtTimedOut = { p -> fmtTimedOut.format(p) }
+    )
     if (messages.isEmpty()) return
 
     Surface(
@@ -461,7 +486,7 @@ private fun TurnIndicatorBanner(uiState: GameUiState) {
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        "\u2726 Your Turn!",
+                        stringResource(Res.string.game_your_turn),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.secondary
@@ -469,7 +494,7 @@ private fun TurnIndicatorBanner(uiState: GameUiState) {
                     if (secondsRemaining <= 15) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "${secondsRemaining}s",
+                            stringResource(Res.string.game_timer_seconds, secondsRemaining),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = if (secondsRemaining <= 10) CardRed else MaterialTheme.colorScheme.secondary
@@ -488,7 +513,7 @@ private fun TurnIndicatorBanner(uiState: GameUiState) {
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        "${uiState.activePlayerName} is thinking...",
+                        stringResource(Res.string.game_bot_thinking, uiState.activePlayerName),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -499,14 +524,14 @@ private fun TurnIndicatorBanner(uiState: GameUiState) {
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        "${uiState.activePlayerName}'s turn",
+                        stringResource(Res.string.game_player_turn, uiState.activePlayerName),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (secondsRemaining <= 15) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "${secondsRemaining}s",
+                            stringResource(Res.string.game_timer_seconds, secondsRemaining),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = if (secondsRemaining <= 10) CardRed

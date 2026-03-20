@@ -22,6 +22,9 @@ import com.cards.game.literature.ui.game.GameBoardContent
 import com.cards.game.literature.viewmodel.GameViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import literature.composeapp.generated.resources.Res
+import literature.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.qualifier.named
 
@@ -57,8 +60,8 @@ fun OnlineGameScreen(
     if (showQuitDialog) {
         AlertDialog(
             onDismissRequest = { showQuitDialog = false },
-            title = { Text("Leave Game?", fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to leave? A bot will take over immediately.") },
+            title = { Text(stringResource(Res.string.dialog_leave_online_game_title), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(Res.string.dialog_leave_online_game_message)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -68,12 +71,12 @@ fun OnlineGameScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Leave")
+                    Text(stringResource(Res.string.button_leave_game))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showQuitDialog = false }) {
-                    Text("Keep Playing")
+                    Text(stringResource(Res.string.button_keep_playing))
                 }
             }
         )
@@ -123,7 +126,7 @@ private fun ReconnectCountdownBanners(countdowns: Map<String, ReconnectInfo>) {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                "Waiting for ${info.playerName} to reconnect... (${secondsLeft}s)",
+                stringResource(Res.string.reconnect_waiting, info.playerName, secondsLeft),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.secondary
             )

@@ -10,7 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import literature.composeapp.generated.resources.Res
+import literature.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ActionButtons(
@@ -33,7 +35,7 @@ fun ActionButtons(
                 disabledContainerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
             )
         ) {
-            Text("ASK CARD", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(Res.string.action_ask_card), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         Button(
             onClick = onClaimDeck,
@@ -46,7 +48,7 @@ fun ActionButtons(
                 disabledContainerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
             )
         ) {
-            Text("CLAIM DECK", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(Res.string.action_claim_deck), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
     }
 }

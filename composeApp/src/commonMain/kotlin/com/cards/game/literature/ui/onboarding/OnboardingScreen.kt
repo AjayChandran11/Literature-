@@ -26,6 +26,9 @@ import androidx.compose.ui.unit.*
 import com.cards.game.literature.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import literature.composeapp.generated.resources.Res
+import literature.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OnboardingScreen(onFinish: () -> Unit) {
@@ -68,7 +71,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                 .padding(end = 16.dp, top = 8.dp)
         ) {
             TextButton(onClick = onFinish) {
-                Text("Skip", color = onBackground.copy(alpha = 0.5f), fontSize = 14.sp)
+                Text(stringResource(Res.string.onboarding_skip), color = onBackground.copy(alpha = 0.5f), fontSize = 14.sp)
             }
         }
 
@@ -110,7 +113,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                         .height(48.dp)
                 ) {
                     Text(
-                        "Next  →",
+                        stringResource(Res.string.onboarding_next),
                         color = Color.Black,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
@@ -179,7 +182,7 @@ private fun ShimmerTitle() {
         end   = Offset((shimmerOffset + 0.15f) * 900f, 0f)
     )
     Text(
-        "Literature",
+        stringResource(Res.string.onboarding_welcome_title),
         style = TextStyle(
             brush = shimmerBrush,
             fontSize = 56.sp,
@@ -198,7 +201,7 @@ private fun PulsingHint(color: Color) {
             label = "hintAlpha"
         )
     Text(
-        "Swipe to learn how to play →",
+        stringResource(Res.string.onboarding_swipe_hint),
         fontSize = 13.sp,
         color = color,
         textAlign = TextAlign.Center,
@@ -225,6 +228,11 @@ private fun WelcomePage() {
     val background = MaterialTheme.colorScheme.background
     val onBackground = MaterialTheme.colorScheme.onBackground
 
+    val spades = stringResource(Res.string.suit_spades)
+    val hearts = stringResource(Res.string.suit_hearts)
+    val diamonds = stringResource(Res.string.suit_diamonds)
+    val clubs = stringResource(Res.string.suit_clubs)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -237,7 +245,7 @@ private fun WelcomePage() {
         contentAlignment = Alignment.Center
     ) {
         // Corner suit symbols
-        val cornerSuits = listOf("♠", "♥", "♦", "♣")
+        val cornerSuits = listOf(spades, hearts, diamonds, clubs)
         val cornerColors = listOf(onBackground, CardRed, CardRed, onBackground)
         val cornerAlignments = listOf(
             Alignment.TopStart, Alignment.TopEnd,
@@ -266,7 +274,7 @@ private fun WelcomePage() {
         ) {
             // Suits row — alpha + scale in graphicsLayer to avoid recomposition
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                listOf("♠" to onBackground, "♥" to CardRed, "♦" to CardRed, "♣" to onBackground)
+                listOf(spades to onBackground, hearts to CardRed, diamonds to CardRed, clubs to onBackground)
                     .forEachIndexed { i, (s, c) ->
                         val symAlpha by animateFloatAsState(
                             targetValue = if (suitVisible[i].value) 0.75f else 0f,
@@ -309,7 +317,7 @@ private fun WelcomePage() {
                 enter = fadeIn(tween(600))
             ) {
                 Text(
-                    "THE ULTIMATE CARD GAME",
+                    stringResource(Res.string.onboarding_ultimate_card_game),
                     fontSize = 13.sp,
                     letterSpacing = 3.sp,
                     color = onBackground.copy(alpha = 0.45f),
@@ -329,7 +337,7 @@ private fun WelcomePage() {
                     border = BorderStroke(1.dp, onBackground.copy(alpha = 0.1f))
                 ) {
                     Text(
-                        "4–8 players  ·  2 teams  ·  48 cards\nAsk, strategise, and claim half suits",
+                        stringResource(Res.string.onboarding_description),
                         fontSize = 14.sp,
                         color = onBackground.copy(alpha = 0.55f),
                         textAlign = TextAlign.Center,
@@ -353,18 +361,6 @@ private data class HalfSuitInfo(
     val lightColor: Color,  // 500–700 shades for light theme
 )
 
-private val halfSuits = listOf(
-    //                                    dark          light
-    HalfSuitInfo("♠", "Low Spades",  "2  3  4  5  6  7",  Color(0xFF37474F), Color(0xFF607D8B)),
-    HalfSuitInfo("♠", "High Spades", "9  10  J  Q  K  A", Color(0xFF263238), Color(0xFF546E7A)),
-    HalfSuitInfo("♥", "Low Hearts",  "2  3  4  5  6  7",  Color(0xFFB71C1C), Color(0xFFE53935)),
-    HalfSuitInfo("♥", "High Hearts", "9  10  J  Q  K  A", Color(0xFF880E4F), Color(0xFFC2185B)),
-    HalfSuitInfo("♦", "Low Diamonds",  "2  3  4  5  6  7",  Color(0xFF1565C0), Color(0xFF1E88E5)),
-    HalfSuitInfo("♦", "High Diamonds", "9  10  J  Q  K  A", Color(0xFF0D47A1), Color(0xFF1976D2)),
-    HalfSuitInfo("♣", "Low Clubs",  "2  3  4  5  6  7",  Color(0xFF2E7D32), Color(0xFF43A047)),
-    HalfSuitInfo("♣", "High Clubs", "9  10  J  Q  K  A", Color(0xFF1B5E20), Color(0xFF388E3C)),
-)
-
 @Composable
 private fun DeckPage(isActive: Boolean) {
     val tileVisible = remember { Array(8) { mutableStateOf(false) } }
@@ -382,6 +378,24 @@ private fun DeckPage(isActive: Boolean) {
 
     val onBackground = MaterialTheme.colorScheme.onBackground
 
+    val rangeLow = stringResource(Res.string.card_range_low)
+    val rangeHigh = stringResource(Res.string.card_range_high)
+    val spades = stringResource(Res.string.suit_spades)
+    val hearts = stringResource(Res.string.suit_hearts)
+    val diamonds = stringResource(Res.string.suit_diamonds)
+    val clubs = stringResource(Res.string.suit_clubs)
+
+    val halfSuits = listOf(
+        HalfSuitInfo(spades, stringResource(Res.string.half_suit_low_spades),   rangeLow,  Color(0xFF37474F), Color(0xFF607D8B)),
+        HalfSuitInfo(spades, stringResource(Res.string.half_suit_high_spades),  rangeHigh, Color(0xFF263238), Color(0xFF546E7A)),
+        HalfSuitInfo(hearts, stringResource(Res.string.half_suit_low_hearts),   rangeLow,  Color(0xFFB71C1C), Color(0xFFE53935)),
+        HalfSuitInfo(hearts, stringResource(Res.string.half_suit_high_hearts),  rangeHigh, Color(0xFF880E4F), Color(0xFFC2185B)),
+        HalfSuitInfo(diamonds, stringResource(Res.string.half_suit_low_diamonds),  rangeLow,  Color(0xFF1565C0), Color(0xFF1E88E5)),
+        HalfSuitInfo(diamonds, stringResource(Res.string.half_suit_high_diamonds), rangeHigh, Color(0xFF0D47A1), Color(0xFF1976D2)),
+        HalfSuitInfo(clubs, stringResource(Res.string.half_suit_low_clubs),   rangeLow,  Color(0xFF2E7D32), Color(0xFF43A047)),
+        HalfSuitInfo(clubs, stringResource(Res.string.half_suit_high_clubs),  rangeHigh, Color(0xFF1B5E20), Color(0xFF388E3C)),
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -392,9 +406,9 @@ private fun DeckPage(isActive: Boolean) {
     ) {
         AnimatedVisibility(visible = headerVisible, enter = fadeIn(tween(400)) + slideInVertically { -it }) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("The Deck", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.secondary)
+                Text(stringResource(Res.string.onboarding_deck_title), fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.secondary)
                 Text(
-                    "48 cards — split into 8 Half Suits of 6 cards each",
+                    stringResource(Res.string.onboarding_deck_subtitle),
                     fontSize = 13.sp,
                     color = onBackground.copy(alpha = 0.55f),
                     textAlign = TextAlign.Center
@@ -406,7 +420,7 @@ private fun DeckPage(isActive: Boolean) {
                     border = BorderStroke(1.dp, CardRed.copy(alpha = 0.5f))
                 ) {
                     Text(
-                        "  ✕  No 8s in Literature!  ",
+                        stringResource(Res.string.onboarding_no_eights),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = CardRed,
@@ -507,6 +521,10 @@ private fun TeamsPage(isActive: Boolean) {
 
     val onBackground = MaterialTheme.colorScheme.onBackground
 
+    val teamAName = stringResource(Res.string.onboarding_team_a)
+    val teamBName = stringResource(Res.string.onboarding_team_b)
+    val labelYou = stringResource(Res.string.onboarding_label_you)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -516,9 +534,9 @@ private fun TeamsPage(isActive: Boolean) {
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Two Teams", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.secondary)
+            Text(stringResource(Res.string.onboarding_teams_title), fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.secondary)
             Text(
-                "Collaborate with your teammates to claim the most half suits",
+                stringResource(Res.string.onboarding_teams_subtitle),
                 fontSize = 13.sp,
                 color = onBackground.copy(alpha = 0.55f),
                 textAlign = TextAlign.Center
@@ -530,9 +548,9 @@ private fun TeamsPage(isActive: Boolean) {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             TeamColumn(
-                teamName = "Team A",
+                teamName = teamAName,
                 teamColor = LightGreen,
-                players = listOf("You", "Alice", "Bob"),
+                players = listOf(labelYou, "Alice", "Bob"),
                 playerVisible = playerVisible.slice(0..2).map { it.value },
                 onBackground = onBackground,
                 modifier = Modifier
@@ -543,7 +561,7 @@ private fun TeamsPage(isActive: Boolean) {
                     }
             )
             TeamColumn(
-                teamName = "Team B",
+                teamName = teamBName,
                 teamColor = CardRed,
                 players = listOf("Charlie", "Diana", "Eve"),
                 playerVisible = playerVisible.slice(3..5).map { it.value },
@@ -567,7 +585,7 @@ private fun TeamsPage(isActive: Boolean) {
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f))
             ) {
                 Text(
-                    "💡  Your asks reveal info to your whole team — think strategically before asking!",
+                    stringResource(Res.string.onboarding_strategy_tip),
                     fontSize = 13.sp,
                     color = onBackground.copy(alpha = 0.65f),
                     textAlign = TextAlign.Center,
@@ -692,12 +710,21 @@ private fun AskPage() {
 
     val onBackground = MaterialTheme.colorScheme.onBackground
 
+    val askingSpade7 = stringResource(Res.string.onboarding_asking_spade7)
+    val gotIt = stringResource(Res.string.onboarding_got_it)
+    val askingSpade6 = stringResource(Res.string.onboarding_asking_spade6)
+    val denied = stringResource(Res.string.onboarding_denied)
+    val yourTurnToAsk = stringResource(Res.string.onboarding_your_turn_to_ask)
+    val cardSpade7 = stringResource(Res.string.onboarding_card_spade7)
+    val cardSpade6 = stringResource(Res.string.onboarding_card_spade6)
+    val cardSpade = stringResource(Res.string.onboarding_card_spade)
+
     val labelText = when (phase) {
-        1    -> "Asking for ♠7..."
-        2    -> "✓  Got it! You can ask again"
-        3, 4 -> "Asking for ♠6..."
-        5    -> "✗  Denied — turn passes"
-        else -> "Your turn to ask"
+        1    -> askingSpade7
+        2    -> gotIt
+        3, 4 -> askingSpade6
+        5    -> denied
+        else -> yourTurnToAsk
     }
     val labelColor = when (phase) {
         2    -> LightGreen
@@ -714,9 +741,9 @@ private fun AskPage() {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("The Ask", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.secondary)
+            Text(stringResource(Res.string.onboarding_ask_title), fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.secondary)
             Text(
-                "On your turn, ask an opponent for a card — you must already hold one from that half suit",
+                stringResource(Res.string.onboarding_ask_subtitle),
                 fontSize = 13.sp,
                 color = onBackground.copy(alpha = 0.55f),
                 textAlign = TextAlign.Center,
@@ -737,7 +764,7 @@ private fun AskPage() {
 
             // Opponent bubble (top)
             PlayerBubble(
-                label = "Opponent",
+                label = stringResource(Res.string.onboarding_label_opponent),
                 initial = "C",
                 color = CardRed,
                 onBackground = onBackground,
@@ -746,7 +773,7 @@ private fun AskPage() {
 
             // You bubble (bottom)
             PlayerBubble(
-                label = "You",
+                label = stringResource(Res.string.onboarding_label_you),
                 initial = "Y",
                 color = LightGreen,
                 onBackground = onBackground,
@@ -767,9 +794,9 @@ private fun AskPage() {
                 contentAlignment = Alignment.Center
             ) {
                 val cardLabel = when (phase) {
-                    1, 2, 3 -> "♠7"
-                    4, 5, 6 -> "♠6"
-                    else    -> "♠"
+                    1, 2, 3 -> cardSpade7
+                    4, 5, 6 -> cardSpade6
+                    else    -> cardSpade
                 }
                 Text(
                     cardLabel,
@@ -797,9 +824,24 @@ private fun AskPage() {
 
         // Rules
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            RuleRow(icon = "✓", text = "Success → take the card and ask again", color = LightGreen, onBackground = onBackground)
-            RuleRow(icon = "✗", text = "Denied → turn passes to that opponent", color = CardRed, onBackground = onBackground)
-            RuleRow(icon = "⚠", text = "You must hold a card from that half suit", color = MaterialTheme.colorScheme.secondary, onBackground = onBackground)
+            RuleRow(
+                icon = stringResource(Res.string.onboarding_rule_icon_success),
+                text = stringResource(Res.string.onboarding_rule_success),
+                color = LightGreen,
+                onBackground = onBackground
+            )
+            RuleRow(
+                icon = stringResource(Res.string.onboarding_rule_icon_denied),
+                text = stringResource(Res.string.onboarding_rule_denied),
+                color = CardRed,
+                onBackground = onBackground
+            )
+            RuleRow(
+                icon = stringResource(Res.string.onboarding_rule_icon_must_hold),
+                text = stringResource(Res.string.onboarding_rule_must_hold),
+                color = MaterialTheme.colorScheme.secondary,
+                onBackground = onBackground
+            )
         }
     }
 }
@@ -848,7 +890,7 @@ private fun ClaimBadge(visible: Boolean) {
     ) {
         Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.secondary) {
             Text(
-                "  ♠ Low Spades — CLAIMED!  ",
+                stringResource(Res.string.onboarding_claim_badge),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.Black,
@@ -916,9 +958,9 @@ private fun ClaimPage(onFinish: () -> Unit, isActive: Boolean) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Claim & Win", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.secondary)
+            Text(stringResource(Res.string.onboarding_claim_title), fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.secondary)
             Text(
-                "When your team holds all 6 cards of a half suit — claim it for a point!",
+                stringResource(Res.string.onboarding_claim_subtitle),
                 fontSize = 13.sp,
                 color = onBackground.copy(alpha = 0.55f),
                 textAlign = TextAlign.Center,
@@ -974,7 +1016,7 @@ private fun ClaimPage(onFinish: () -> Unit, isActive: Boolean) {
             enter = fadeIn(tween(400)) + expandVertically(tween(400))
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Your Team", fontSize = 13.sp, color = onBackground.copy(alpha = 0.45f))
+                Text(stringResource(Res.string.onboarding_your_team), fontSize = 13.sp, color = onBackground.copy(alpha = 0.45f))
                 Text(
                     "$score",
                     fontSize = 64.sp,
@@ -982,10 +1024,10 @@ private fun ClaimPage(onFinish: () -> Unit, isActive: Boolean) {
                     color = LightGreen,
                     lineHeight = 70.sp
                 )
-                Text("half suits claimed", fontSize = 13.sp, color = onBackground.copy(alpha = 0.45f))
+                Text(stringResource(Res.string.onboarding_half_suits_claimed), fontSize = 13.sp, color = onBackground.copy(alpha = 0.45f))
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Most half suits wins!",
+                    stringResource(Res.string.onboarding_most_wins),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.secondary
@@ -1012,7 +1054,7 @@ private fun ClaimPage(onFinish: () -> Unit, isActive: Boolean) {
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
             ) {
                 Text(
-                    "Let's Play!  ♠♥♦♣",
+                    stringResource(Res.string.onboarding_lets_play),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color.Black

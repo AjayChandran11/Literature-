@@ -23,6 +23,9 @@ import com.cards.game.literature.model.HalfSuit
 import com.cards.game.literature.model.Suit
 import com.cards.game.literature.model.symbol
 import com.cards.game.literature.viewmodel.PlayerInfo
+import literature.composeapp.generated.resources.Res
+import literature.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 private fun suitFor(hs: HalfSuit): Suit = when (hs) {
     HalfSuit.SPADES_LOW, HalfSuit.SPADES_HIGH -> Suit.SPADES
@@ -83,7 +86,7 @@ fun AskBottomSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Ask a Card",
+                text = stringResource(Res.string.ask_sheet_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.secondary
@@ -125,7 +128,12 @@ fun AskBottomSheet(
                                         onIsLowSelected(isLow)
                                     }
                                 },
-                                label = { Text(if (isLow) "Low" else "High") }
+                                label = {
+                                    Text(
+                                        if (isLow) stringResource(Res.string.ask_filter_low)
+                                        else stringResource(Res.string.ask_filter_high)
+                                    )
+                                }
                             )
                         }
                     }
@@ -146,8 +154,8 @@ fun AskBottomSheet(
                 ) {
                     if (halfSuit == null) {
                         Text(
-                            text = if (selectedSuit == null) "Select a suit to see cards"
-                                   else "Select Low or High",
+                            text = if (selectedSuit == null) stringResource(Res.string.ask_select_suit_hint)
+                                   else stringResource(Res.string.ask_select_range_hint),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
@@ -190,7 +198,7 @@ fun AskBottomSheet(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        "Ask Queue:",
+                        stringResource(Res.string.ask_queue_label),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -213,7 +221,7 @@ fun AskBottomSheet(
 
             // Opponent chips
             if (activeOpponents.isNotEmpty()) {
-                Text("Ask:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(Res.string.ask_label), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -237,14 +245,14 @@ fun AskBottomSheet(
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(Res.string.button_cancel))
                 }
                 Button(
                     onClick = { onConfirm(selectedOpponent!!.id, selectedCards.toList()) },
                     enabled = canConfirm,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Confirm (${selectedCards.size}) \u2713")
+                    Text(stringResource(Res.string.ask_confirm_button, selectedCards.size))
                 }
             }
         }

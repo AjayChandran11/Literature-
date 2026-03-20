@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">Literature</string>
+
+    <!-- Common buttons -->
+    <string name="button_cancel">Cancel</string>
+    <string name="button_back">Back</string>
+    <string name="button_leave">Leave</string>
+    <string name="button_stay">Stay</string>
+    <string name="button_start_game">Start Game</string>
+    <string name="button_play_again">Play Again</string>
+    <string name="button_home">Home</string>
+    <string name="button_quit">Quit</string>
+    <string name="button_keep_playing">Keep Playing</string>
+    <string name="button_leave_room">Leave Room</string>
+    <string name="button_review">Review</string>
+    <string name="button_claim">CLAIM!</string>
+
+    <!-- Common labels -->
+    <string name="label_your_team">Your Team</string>
+    <string name="label_opponents">Opponents</string>
+    <string name="player_card_count">%1$d cards</string>
+
+    <!-- Suit symbols -->
+    <string name="suit_spades">♠</string>
+    <string name="suit_hearts">♥</string>
+    <string name="suit_diamonds">♦</string>
+    <string name="suit_clubs">♣</string>
+    <string name="suits_display">♠ ♥ ♦ ♣</string>
+
+    <!-- Home Screen -->
+    <string name="home_title">Literature</string>
+    <string name="home_subtitle">The Classic Card Game</string>
+    <string name="home_player_name_hint">Your Name</string>
+    <string name="home_new_game">New Game</string>
+    <string name="home_play_online">Play Online</string>
+
+    <!-- Game Setup Dialog -->
+    <string name="game_setup_title">Game Setup</string>
+    <string name="game_setup_players_question">How many players?</string>
+    <string name="game_setup_players_label">players</string>
+    <string name="game_setup_teams_format">%1$dv%2$d</string>
+
+    <!-- Lobby Screen -->
+    <string name="lobby_playing_as">Playing as %1$s</string>
+    <string name="lobby_create_room">Create Room</string>
+    <string name="lobby_join_with_code">or join with a code</string>
+    <string name="lobby_room_code_hint">Room Code</string>
+    <string name="lobby_join_room">Join Room</string>
+
+    <!-- Waiting Room Screen -->
+    <string name="dialog_leave_room_title">Leave Room?</string>
+    <string name="dialog_leave_room_message">Are you sure you want to leave the room?</string>
+    <string name="waiting_room_title">Waiting Room</string>
+    <string name="waiting_room_code_label">Room Code</string>
+    <string name="waiting_room_share_code">Share this code with friends</string>
+    <string name="waiting_room_players_count">Players (%1$d/%2$d)</string>
+    <string name="waiting_room_team_1">Team 1</string>
+    <string name="waiting_room_team_2">Team 2</string>
+    <string name="player_badge_host">HOST</string>
+    <string name="waiting_room_fill_bots">Fill empty slots with bots</string>
+    <string name="waiting_room_waiting_for_host">Waiting for host to start…</string>
+    <string name="error_start_game_timeout">Failed to start game. Please go back and try again.</string>
+    <string name="snackbar_player_disconnected">%1$s disconnected</string>
+    <string name="snackbar_player_reconnected">%1$s reconnected</string>
+    <string name="snackbar_host_changed">%1$s is now the host</string>
+    <string name="snackbar_replaced_by_bot">%1$s replaced by bot</string>
+
+    <!-- Game Board Screen -->
+    <string name="dialog_quit_game_title">Quit Game?</string>
+    <string name="dialog_quit_game_message">Are you sure you want to quit? Your progress will be lost.</string>
+    <string name="dialog_leave_online_game_title">Leave Game?</string>
+    <string name="dialog_leave_online_game_message">Are you sure you want to leave? A bot will take over immediately.</string>
+    <string name="button_leave_game">Leave</string>
+    <string name="reconnect_waiting">Waiting for %1$s to reconnect… (%2$ds)</string>
+    <string name="game_your_turn">✦ Your Turn!</string>
+    <string name="game_timer_seconds">%1$ds</string>
+    <string name="game_bot_thinking">%1$s is thinking…</string>
+    <string name="game_player_turn">%1$s\'s turn</string>
+
+    <!-- Score Bar -->
+    <string name="score_vs">VS</string>
+
+    <!-- Game Tabs -->
+    <string name="tab_table">Table</string>
+    <string name="tab_hand">Hand</string>
+    <string name="label_opponents_section">OPPONENTS</string>
+    <string name="label_teammates_section">TEAMMATES</string>
+    <string name="label_half_suits_section">HALF-SUITS</string>
+    <string name="label_your_hand">YOUR HAND</string>
+
+    <!-- Action Buttons -->
+    <string name="action_ask_card">ASK CARD</string>
+    <string name="action_claim_deck">CLAIM DECK</string>
+
+    <!-- Game Log / Event Strip -->
+    <string name="game_log_title">Game Log</string>
+    <string name="game_log_expand">Expand</string>
+    <string name="game_log_collapse">Collapse</string>
+    <string name="game_log_game_started">Game started!</string>
+    <string name="game_log_got_card">%1$s got %2$s from %3$s</string>
+    <string name="game_log_asked_no">%1$s asked %2$s for %3$s - No!</string>
+    <string name="game_log_asked_no_strip">%1$s asked %2$s for %3$s — No!</string>
+    <string name="game_log_claimed_correctly">%1$s claimed %2$s correctly!</string>
+    <string name="game_log_claimed_incorrectly">%1$s claimed %2$s incorrectly!</string>
+    <string name="game_log_game_over">Game Over!</string>
+    <string name="game_log_timed_out">%1$s ran out of time</string>
+
+    <!-- Deck Tracker -->
+    <string name="deck_tracker_ours">Ours</string>
+    <string name="deck_tracker_theirs">Theirs</string>
+    <string name="deck_tracker_open">Open</string>
+
+    <!-- Ask Bottom Sheet -->
+    <string name="ask_sheet_title">Ask a Card</string>
+    <string name="ask_filter_low">Low</string>
+    <string name="ask_filter_high">High</string>
+    <string name="ask_select_suit_hint">Select a suit to see cards</string>
+    <string name="ask_select_range_hint">Select Low or High</string>
+    <string name="ask_queue_label">Ask Queue:</string>
+    <string name="ask_label">Ask:</string>
+    <string name="ask_confirm_button">Confirm (%1$d) ✓</string>
+
+    <!-- Claim Bottom Sheet -->
+    <string name="claim_step1_title">Step 1: Pick Half-Suit to Claim</string>
+    <string name="claim_step2_title">Step 2: Assign Cards to Players</string>
+    <string name="claim_confirm_title">Confirm Your Claim</string>
+    <string name="claim_assign_instruction">Assign each card to the teammate who holds it:</string>
+    <string name="claim_you">You</string>
+    <string name="claim_unassigned">Unassigned</string>
+    <string name="claim_you_assigned">You ✓</string>
+    <string name="claim_claiming">Claiming %1$s</string>
+    <string name="claim_warning">⚠️ If any assignment is wrong, the opponent gets the point!</string>
+
+    <!-- Connection Banner -->
+    <string name="connection_reconnecting">Reconnecting…</string>
+    <string name="connection_reconnected">Reconnected</string>
+    <string name="connection_disconnected">Disconnected</string>
+
+    <!-- Result Screen -->
+    <string name="result_draw">It\'s a Draw!</string>
+    <string name="result_win">You Win!</string>
+    <string name="result_lose">You Lose!</string>
+    <string name="result_breakdown_title">Half-Suit Breakdown</string>
+    <string name="result_unclaimed">Unclaimed</string>
+    <string name="result_show_log">Show Game Log</string>
+    <string name="result_hide_log">Hide Game Log</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next  →</string>
+    <string name="onboarding_swipe_hint">Swipe to learn how to play →</string>
+    <string name="onboarding_welcome_title">Literature</string>
+    <string name="onboarding_ultimate_card_game">THE ULTIMATE CARD GAME</string>
+    <string name="onboarding_description">4–8 players  ·  2 teams  ·  48 cards\nAsk, strategise, and claim half suits</string>
+    <string name="onboarding_deck_title">The Deck</string>
+    <string name="onboarding_deck_subtitle">48 cards — split into 8 Half Suits of 6 cards each</string>
+    <string name="onboarding_no_eights">  ✕  No 8s in Literature!  </string>
+    <string name="onboarding_teams_title">Two Teams</string>
+    <string name="onboarding_teams_subtitle">Collaborate with your teammates to claim the most half suits</string>
+    <string name="onboarding_team_a">Team A</string>
+    <string name="onboarding_team_b">Team B</string>
+    <string name="onboarding_strategy_tip">💡  Your asks reveal info to your whole team — think strategically before asking!</string>
+    <string name="onboarding_ask_title">The Ask</string>
+    <string name="onboarding_ask_subtitle">On your turn, ask an opponent for a card — you must already hold one from that half suit</string>
+    <string name="onboarding_label_opponent">Opponent</string>
+    <string name="onboarding_label_you">You</string>
+    <string name="onboarding_asking_spade7">Asking for ♠7…</string>
+    <string name="onboarding_got_it">✓  Got it! You can ask again</string>
+    <string name="onboarding_asking_spade6">Asking for ♠6…</string>
+    <string name="onboarding_denied">✗  Denied — turn passes</string>
+    <string name="onboarding_your_turn_to_ask">Your turn to ask</string>
+    <string name="onboarding_rule_icon_success">✓</string>
+    <string name="onboarding_rule_icon_denied">✗</string>
+    <string name="onboarding_rule_icon_must_hold">⚠</string>
+    <string name="onboarding_rule_success">Success → take the card and ask again</string>
+    <string name="onboarding_rule_denied">Denied → turn passes to that opponent</string>
+    <string name="onboarding_rule_must_hold">You must hold a card from that half suit</string>
+    <string name="onboarding_claim_title">Claim &amp; Win</string>
+    <string name="onboarding_claim_subtitle">When your team holds all 6 cards of a half suit — claim it for a point!</string>
+    <string name="onboarding_claim_badge">  ♠ Low Spades — CLAIMED!  </string>
+    <string name="onboarding_your_team">Your Team</string>
+    <string name="onboarding_half_suits_claimed">half suits claimed</string>
+    <string name="onboarding_most_wins">Most half suits wins!</string>
+    <string name="onboarding_lets_play">Let\'s Play!  ♠♥♦♣</string>
+
+    <!-- Onboarding card demo labels -->
+    <string name="onboarding_card_spade7">♠7</string>
+    <string name="onboarding_card_spade6">♠6</string>
+    <string name="onboarding_card_spade">♠</string>
+
+    <!-- Half Suit tile names (DeckPage) -->
+    <string name="half_suit_low_spades">Low Spades</string>
+    <string name="half_suit_high_spades">High Spades</string>
+    <string name="half_suit_low_hearts">Low Hearts</string>
+    <string name="half_suit_high_hearts">High Hearts</string>
+    <string name="half_suit_low_diamonds">Low Diamonds</string>
+    <string name="half_suit_high_diamonds">High Diamonds</string>
+    <string name="half_suit_low_clubs">Low Clubs</string>
+    <string name="half_suit_high_clubs">High Clubs</string>
+
+    <!-- Card ranges (DeckPage) -->
+    <string name="card_range_low">2  3  4  5  6  7</string>
+    <string name="card_range_high">9  10  J  Q  K  A</string>
+</resources>

@@ -17,7 +17,8 @@ data class WaitingRoomUiState(
     val isHost: Boolean = false,
     val targetPlayerCount: Int = 6,
     val errorMessage: String? = null,
-    val isStarting: Boolean = false
+    val isStarting: Boolean = false,
+    val isStartGameTimedOut: Boolean = false
 )
 
 data class WaitingRoomPlayer(
@@ -40,8 +41,8 @@ class WaitingRoomViewModel(
     private val _navigateToGame = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val navigateToGame: Flow<Unit> = _navigateToGame.asSharedFlow()
 
-    private val _snackbarEvents = MutableSharedFlow<String>(extraBufferCapacity = 16)
-    val snackbarEvents: Flow<String> = _snackbarEvents.asSharedFlow()
+    private val _snackbarEvents = MutableSharedFlow<PlayerConnectionEvent>(extraBufferCapacity = 16)
+    val snackbarEvents: Flow<PlayerConnectionEvent> = _snackbarEvents.asSharedFlow()
 
     init {
         viewModelScope.launch {
@@ -63,13 +64,7 @@ class WaitingRoomViewModel(
 
         viewModelScope.launch {
             onlineRepository.playerEvents.collect { event ->
-                val message = when (event) {
-                    is PlayerConnectionEvent.Disconnected -> "${event.playerName} disconnected"
-                    is PlayerConnectionEvent.Reconnected -> "${event.playerName} reconnected"
-                    is PlayerConnectionEvent.HostChanged -> "${event.newHostName} is now the host"
-                    is PlayerConnectionEvent.ReplacedByBot -> "${event.playerName} replaced by bot"
-                }
-                _snackbarEvents.emit(message)
+                _snackbarEvents.emit(event)
             }
         }
     }
@@ -81,7 +76,7 @@ class WaitingRoomViewModel(
             // Reset after timeout so the button doesn't stay stuck if server doesn't respond
             delay(5000L)
             _uiState.update {
-                if (it.isStarting) it.copy(isStarting = false, errorMessage = "Failed to start game. Please go back and try again.")
+                if (it.isStarting) it.copy(isStarting = false, isStartGameTimedOut = true)
                 else it
             }
         }
@@ -94,7 +89,7 @@ class WaitingRoomViewModel(
     }
 
     fun clearError() {
-        _uiState.update { it.copy(errorMessage = null) }
+        _uiState.update { it.copy(errorMessage = null, isStartGameTimedOut = false) }
     }
 
     private fun updateFromRoom(room: RoomState) {

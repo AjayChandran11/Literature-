@@ -25,6 +25,9 @@ import com.cards.game.literature.ui.game.GameLogEntry
 import com.cards.game.literature.ui.theme.CardRed
 import com.cards.game.literature.ui.theme.LightGreen
 import com.cards.game.literature.viewmodel.ResultViewModel
+import literature.composeapp.generated.resources.Res
+import literature.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -35,6 +38,9 @@ fun ResultScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showLog by remember { mutableStateOf(false) }
+
+    val myTeamDisplayName = uiState.myTeamName.ifEmpty { stringResource(Res.string.label_your_team) }
+    val opponentTeamDisplayName = uiState.opponentTeamName.ifEmpty { stringResource(Res.string.label_opponents) }
 
     Column(
         modifier = Modifier
@@ -47,9 +53,9 @@ fun ResultScreen(
         // Winner banner
         Text(
             text = when {
-                uiState.isDraw -> "It's a Draw!"
-                uiState.isWinner -> "You Win!"
-                else -> "You Lose!"
+                uiState.isDraw -> stringResource(Res.string.result_draw)
+                uiState.isWinner -> stringResource(Res.string.result_win)
+                else -> stringResource(Res.string.result_lose)
             },
             style = MaterialTheme.typography.displaySmall,
             color = when {
@@ -67,7 +73,7 @@ fun ResultScreen(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(uiState.myTeamName, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(myTeamDisplayName, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
                     "${uiState.myTeamScore}",
                     style = MaterialTheme.typography.displayLarge,
@@ -83,7 +89,7 @@ fun ResultScreen(
                 modifier = Modifier.padding(top = 16.dp)
             )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(uiState.opponentTeamName, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(opponentTeamDisplayName, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
                     "${uiState.opponentTeamScore}",
                     style = MaterialTheme.typography.displayLarge,
@@ -97,7 +103,7 @@ fun ResultScreen(
 
         // Breakdown
         Text(
-            "Half-Suit Breakdown",
+            stringResource(Res.string.result_breakdown_title),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.secondary
@@ -123,9 +129,9 @@ fun ResultScreen(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     val claimedBy = when (status.claimedByTeamId) {
-                        "team_1" -> uiState.myTeamName
-                        "team_2" -> uiState.opponentTeamName
-                        else -> "Unclaimed"
+                        "team_1" -> myTeamDisplayName
+                        "team_2" -> opponentTeamDisplayName
+                        else -> stringResource(Res.string.result_unclaimed)
                     }
                     val claimColor = when (status.claimedByTeamId) {
                         "team_1" -> LightGreen
@@ -150,7 +156,7 @@ fun ResultScreen(
             modifier = Modifier.fillMaxWidth(0.7f),
             shape = RoundedCornerShape(10.dp)
         ) {
-            Text(if (showLog) "Hide Game Log" else "Show Game Log")
+            Text(if (showLog) stringResource(Res.string.result_hide_log) else stringResource(Res.string.result_show_log))
         }
 
         if (showLog) {
@@ -180,7 +186,7 @@ fun ResultScreen(
                 .height(48.dp),
             shape = RoundedCornerShape(10.dp)
         ) {
-            Text("Play Again", fontWeight = FontWeight.Bold)
+            Text(stringResource(Res.string.button_play_again), fontWeight = FontWeight.Bold)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -192,7 +198,7 @@ fun ResultScreen(
                 .height(48.dp),
             shape = RoundedCornerShape(10.dp)
         ) {
-            Text("Home")
+            Text(stringResource(Res.string.button_home))
         }
     }
 }
