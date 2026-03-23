@@ -147,7 +147,7 @@ fun GameSetupDialog(
     confirmLabel: String = stringResource(Res.string.button_start_game),
     allowEightPlayers: Boolean = false
 ) {
-    var selectedCount by remember { mutableIntStateOf(6) }
+    var selectedCount by remember { mutableIntStateOf(4) }
     val primary = MaterialTheme.colorScheme.primary
     val secondary = MaterialTheme.colorScheme.secondary
     val onSurface = MaterialTheme.colorScheme.onSurface
