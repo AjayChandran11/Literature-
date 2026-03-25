@@ -226,4 +226,19 @@
     <string name="help_winning_body">The team that claims more half-suits wins the game. If it's 4–4, it's a draw.</string>
     <string name="help_tip_title">Strategy Tip</string>
     <string name="help_tip_body">Every ask is public info. Think about what your moves reveal — to your teammates and your opponents.</string>
+
+    <!-- Tutorial tooltips -->
+    <string name="tutorial_score_bar">This shows the score. Your team vs opponents.</string>
+    <string name="tutorial_turn_banner">This shows whose turn it is and the time remaining.</string>
+    <string name="tutorial_players">Here you can see all players and how many cards they hold.</string>
+    <string name="tutorial_half_suits">Track which half-suits are claimed or taken.</string>
+    <string name="tutorial_hand_tab">Tap here to see your cards, grouped by half-suit.</string>
+    <string name="tutorial_action_buttons">On your turn, use these to ask for cards or claim a half-suit.</string>
+    <string name="tutorial_tap_continue">Tap anywhere to continue</string>
+
+    <!-- Online gate dialog -->
+    <string name="dialog_online_gate_title">Play offline first?</string>
+    <string name="dialog_online_gate_message">We recommend playing an offline game first to learn the basics.</string>
+    <string name="dialog_online_gate_play_offline">Play Offline</string>
+    <string name="dialog_online_gate_continue">Continue Online</string>
 </resources>
