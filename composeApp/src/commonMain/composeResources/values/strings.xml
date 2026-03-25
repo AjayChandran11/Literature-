@@ -63,6 +63,8 @@
     <string name="waiting_room_team_2">Team 2</string>
     <string name="player_badge_host">HOST</string>
     <string name="waiting_room_fill_bots">Fill empty slots with bots</string>
+    <string name="waiting_room_switch_team">Switch</string>
+    <string name="waiting_room_teams_uneven_warning">Both teams must have the same number of players</string>
     <string name="waiting_room_waiting_for_host">Waiting for host to start…</string>
     <string name="error_start_game_timeout">Failed to start game. Please go back and try again.</string>
     <string name="snackbar_player_disconnected">%1$s disconnected</string>
