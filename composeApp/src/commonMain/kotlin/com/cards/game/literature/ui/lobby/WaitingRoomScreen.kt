@@ -33,6 +33,7 @@ fun WaitingRoomScreen(
     val uiState by viewModel.uiState.collectAsState()
     var fillWithBots by remember { mutableStateOf(true) }
     var showLeaveDialog by remember { mutableStateOf(false) }
+    var isLeaving by remember { mutableStateOf(false) }
 
     BackHandler {
         showLeaveDialog = true
@@ -46,6 +47,8 @@ fun WaitingRoomScreen(
             confirmButton = {
                 Button(
                     onClick = {
+                        if (isLeaving) return@Button
+                        isLeaving = true
                         showLeaveDialog = false
                         viewModel.leaveRoom()
                         onLeave()
@@ -275,10 +278,14 @@ fun WaitingRoomScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        TextButton(onClick = {
-            viewModel.leaveRoom()
-            onLeave()
-        }) {
+        TextButton(
+            onClick = {
+                if (isLeaving) return@TextButton
+                isLeaving = true
+                viewModel.leaveRoom()
+                onLeave()
+            }
+        ) {
             Text(stringResource(Res.string.button_leave_room), color = MaterialTheme.colorScheme.error)
         }
 
