@@ -10,11 +10,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
 import com.cards.game.literature.preferences.SessionStore
 import com.cards.game.literature.preferences.TutorialPrefs
 import com.cards.game.literature.ui.theme.CardRed
@@ -33,6 +37,7 @@ fun HomeScreen(
     var playerName by remember { mutableStateOf(session.playerName) }
     var showSetupDialog by remember { mutableStateOf(false) }
     var showOnlineGateDialog by remember { mutableStateOf(false) }
+    var showSettingsSheet by remember { mutableStateOf(false) }
     val onBackground = MaterialTheme.colorScheme.onBackground
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -56,6 +61,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .align(cornerAlignments[i])
                     .padding(40.dp)
+                    .clearAndSetSemantics { }
             )
         }
 
@@ -137,7 +143,28 @@ fun HomeScreen(
             ) {
                 Text(stringResource(Res.string.home_play_online), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(onClick = { showSettingsSheet = true }) {
+                Icon(
+                    imageVector = Icons.Filled.Settings,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    stringResource(Res.string.home_settings),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
+    }
+
+    if (showSettingsSheet) {
+        SettingsBottomSheet(onDismiss = { showSettingsSheet = false })
     }
 
     if (showSetupDialog) {

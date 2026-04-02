@@ -19,13 +19,21 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import kotlinx.coroutines.delay
+import com.cards.game.literature.audio.SoundEvent
+import com.cards.game.literature.audio.SoundPlayer
 import com.cards.game.literature.model.Card
 import com.cards.game.literature.model.GameEvent
+import com.cards.game.literature.preferences.GamePrefs
 import com.cards.game.literature.model.HalfSuit
 import com.cards.game.literature.model.Suit
 import com.cards.game.literature.model.GamePhase
@@ -126,6 +134,8 @@ fun GameBoardContent(
     // var selectedCard by remember { mutableStateOf<Card?>(null) } // TODO: future use
     var selectedTab by remember { mutableStateOf(GameTab.TABLE) }
     var previouslyMyTurn by remember { mutableStateOf(false) }
+    var processedLogSize by remember { mutableStateOf(0) }
+    val hapticFeedback = LocalHapticFeedback.current
 
     // Clear suit selection if the selected half suit is claimed OR the player lost all its cards
     LaunchedEffect(uiState.halfSuitStatuses, uiState.myHandByHalfSuit) {
@@ -153,6 +163,52 @@ fun GameBoardContent(
             selectedTab = GameTab.HAND
         }
         previouslyMyTurn = uiState.isMyTurn
+    }
+
+    // Sound: your turn notification
+    LaunchedEffect(uiState.isMyTurn) {
+        if (uiState.isMyTurn) SoundPlayer.play(SoundEvent.YOUR_TURN)
+    }
+
+    // Sounds + haptics for game events
+    LaunchedEffect(gameLog.size) {
+        if (gameLog.size <= processedLogSize) return@LaunchedEffect
+        val newEvents = gameLog.drop(processedLogSize)
+        val myPlayerId = uiState.myPlayerId
+        val myTeamId = uiState.myTeamId
+
+        // Group my ask events by batchId so a mixed batch (some success, some fail)
+        // plays ASK_SUCCESS if at least one card was obtained.
+        val myAskEvents = newEvents.filterIsInstance<GameEvent.CardAsked>()
+            .filter { it.askerId == myPlayerId }
+        val myAskBatches = myAskEvents.groupBy { it.batchId ?: it.card.toString() }
+        myAskBatches.values.forEach { batch ->
+            if (batch.any { it.success }) SoundPlayer.play(SoundEvent.ASK_SUCCESS)
+            else SoundPlayer.play(SoundEvent.ASK_FAIL)
+        }
+
+        newEvents.forEach { event ->
+            when (event) {
+                is GameEvent.CardAsked -> {
+                    if (event.success && event.targetId == myPlayerId) {
+                        SoundPlayer.play(SoundEvent.CARD_TAKEN)
+                    }
+                }
+                is GameEvent.DeckClaimed -> {
+                    if (event.correct) {
+                        if (event.teamId == myTeamId) SoundPlayer.play(SoundEvent.TEAM_CLAIM_SUCCESS)
+                        else SoundPlayer.play(SoundEvent.OPPONENT_CLAIM_SUCCESS)
+                    } else {
+                        SoundPlayer.play(SoundEvent.CLAIM_FAIL)
+                    }
+                    if (GamePrefs.isHapticsEnabled()) {
+                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                    }
+                }
+                else -> {}
+            }
+        }
+        processedLogSize = gameLog.size
     }
 
     // Error snackbar
@@ -591,8 +647,9 @@ private fun TurnIndicatorBanner(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
+                    val botDesc = stringResource(Res.string.cd_bot_thinking)
                     CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(16.dp).semantics { contentDescription = botDesc },
                         strokeWidth = 2.dp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -627,6 +684,7 @@ private fun TurnIndicatorBanner(
             }
 
             // Help icon
+            val helpDesc = stringResource(Res.string.help_button_description)
             Box(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
@@ -637,7 +695,8 @@ private fun TurnIndicatorBanner(
                     )
                     .clickable(onClick = onHelpClick,
                         indication = null,
-                        interactionSource = remember { MutableInteractionSource() }),
+                        interactionSource = remember { MutableInteractionSource() })
+                    .semantics { contentDescription = helpDesc },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
