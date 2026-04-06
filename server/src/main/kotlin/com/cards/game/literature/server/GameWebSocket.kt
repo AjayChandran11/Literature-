@@ -210,7 +210,7 @@ fun Routing.gameWebSocket(roomManager: RoomManager, rateLimiter: RateLimiter) {
             val playerId = currentPlayerId
             log.info("WebSocket closed for player {}", playerId ?: "unknown")
             if (room != null && playerId != null) {
-                room.handleDisconnect(playerId)
+                room.handleDisconnect(playerId, this@webSocket)
                 if (room.phase == com.cards.game.literature.protocol.RoomPhase.WAITING) {
                     room.broadcastRoomUpdate()
                 }

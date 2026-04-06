@@ -84,6 +84,7 @@ class OnlineGameRepository(
                         && roomCode.isNotEmpty() && myPlayerId.isNotEmpty()
                     ) {
                         autoReconnectJob?.cancel()
+                        needsEventReplay.value = true
                         connectAndSend(ClientMessage.Reconnect(roomCode, myPlayerId))
                     }
                 }

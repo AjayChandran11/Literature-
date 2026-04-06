@@ -6,6 +6,7 @@ import com.cards.game.literature.logic.GameEngine
 import com.cards.game.literature.logic.PlayerSetupInfo
 import com.cards.game.literature.model.*
 import com.cards.game.literature.protocol.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -218,8 +219,19 @@ class GameRoom(
         checkNextTurn()
     }
 
-    suspend fun handleDisconnect(playerId: String) {
+    suspend fun handleDisconnect(playerId: String, disconnectedSession: WebSocketSession? = null) {
         val playerSession = players[playerId] ?: return
+
+        // If the player already reconnected on a different WebSocket, ignore this
+        // stale disconnect — it's the old connection's finally block firing late.
+        if (disconnectedSession != null && playerSession.session != null
+            && playerSession.session !== disconnectedSession
+        ) {
+            log.info("[{}] Ignoring stale disconnect for '{}' ({}) — already reconnected on new session",
+                roomCode, playerSession.playerName, playerId)
+            return
+        }
+
         log.info("[{}] Player '{}' ({}) disconnected", roomCode, playerSession.playerName, playerId)
         playerSession.isConnected = false
         playerSession.session = null
@@ -332,14 +344,17 @@ class GameRoom(
                 pendingReclaims[playerId] = true
             }
 
-            // Broadcast reconnect event
+            // Send current game state to the reconnected player FIRST, before
+            // broadcasting the reconnect event. This ensures the client's event
+            // replay (which filters by lastSeenEventTimestamp) processes the
+            // GameUpdate before any new events update that timestamp.
+            val view = state.toPlayerView(playerId, getConnectionStatus(), getDisconnectDeadlines())
+            session.send(ServerMessage.GameUpdate(view))
+
+            // Now broadcast reconnect event to all players
             broadcastEvents(listOf(
                 GameEvent.PlayerReconnected(playerId, session.playerName)
             ))
-
-            // Send current game state to the reconnected player
-            val view = state.toPlayerView(playerId, getConnectionStatus(), getDisconnectDeadlines())
-            session.send(ServerMessage.GameUpdate(view))
 
             // Broadcast updated views to all
             broadcastGameViews()
