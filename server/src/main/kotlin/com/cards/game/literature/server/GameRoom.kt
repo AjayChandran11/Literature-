@@ -1,6 +1,7 @@
 package com.cards.game.literature.server
 
 import com.cards.game.literature.bot.BotAction
+import com.cards.game.literature.bot.BotDifficulty
 import com.cards.game.literature.bot.BotPlayer
 import com.cards.game.literature.logic.GameEngine
 import com.cards.game.literature.logic.PlayerSetupInfo
@@ -19,7 +20,7 @@ class GameRoom(
 ) {
     private val log = LoggerFactory.getLogger("GameRoom")
     private val engine = GameEngine()
-    private val botPlayer = BotPlayer()
+    private var botPlayer = BotPlayer()
     private val players = ConcurrentHashMap<String, PlayerSession>()
     private val playerTeams = ConcurrentHashMap<String, String>()
     private val mutex = Mutex()
@@ -101,8 +102,11 @@ class GameRoom(
         )
     }
 
-    suspend fun startGame(fillWithBots: Boolean): Boolean {
+    suspend fun startGame(fillWithBots: Boolean, botDifficultyName: String = "MEDIUM"): Boolean {
         if (phase != RoomPhase.WAITING) return false
+
+        val difficulty = runCatching { BotDifficulty.valueOf(botDifficultyName) }.getOrDefault(BotDifficulty.MEDIUM)
+        botPlayer = BotPlayer(difficulty = difficulty)
 
         val humanPlayers = players.values.toList()
         val setupPlayers = mutableListOf<PlayerSetupInfo>()

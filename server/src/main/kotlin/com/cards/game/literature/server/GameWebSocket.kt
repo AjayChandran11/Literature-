@@ -108,7 +108,7 @@ fun Routing.gameWebSocket(roomManager: RoomManager, rateLimiter: RateLimiter) {
                                 sendError("Only the host can start the game")
                                 continue
                             }
-                            val started = room.startGame(message.fillWithBots)
+                            val started = room.startGame(message.fillWithBots, message.botDifficulty)
                             if (!started) {
                                 sendError("Cannot start game")
                             }
