@@ -1,6 +1,7 @@
 package com.cards.game.literature.repository
 
 import co.touchlab.kermit.Logger
+import com.cards.game.literature.bot.BotDifficulty
 import com.cards.game.literature.model.*
 import com.cards.game.literature.network.NetworkMonitor
 import com.cards.game.literature.protocol.*
@@ -103,15 +104,15 @@ class OnlineGameRepository(
         connectAndSend(ClientMessage.JoinRoom(roomCode, playerName))
     }
 
-    suspend fun startGame(fillWithBots: Boolean = true) {
-        sendMessage(ClientMessage.StartGame(fillWithBots))
+    suspend fun startGame(fillWithBots: Boolean = true, botDifficulty: String = "MEDIUM") {
+        sendMessage(ClientMessage.StartGame(fillWithBots, botDifficulty))
     }
 
     suspend fun switchTeam() {
         sendMessage(ClientMessage.SwitchTeam)
     }
 
-    override suspend fun createGame(playerName: String, playerCount: Int): GameState {
+    override suspend fun createGame(playerName: String, playerCount: Int, difficulty: BotDifficulty): GameState {
         // Not used for online mode
         throw UnsupportedOperationException("Use createRoom/joinRoom for online play")
     }
