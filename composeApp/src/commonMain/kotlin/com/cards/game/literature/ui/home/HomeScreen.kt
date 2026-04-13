@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,7 +40,7 @@ fun HomeScreen(
     onPlayOnline: (playerName: String) -> Unit = {}
 ) {
     val session = koinInject<SessionStore>()
-    var playerName by remember { mutableStateOf(session.playerName) }
+    var playerName by rememberSaveable { mutableStateOf(session.playerName) }
     var showSetupDialog by remember { mutableStateOf(false) }
     var showOnlineGateDialog by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
