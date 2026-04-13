@@ -21,9 +21,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import com.cards.game.literature.bot.BotDifficulty
 import com.cards.game.literature.preferences.SessionStore
 import com.cards.game.literature.preferences.TutorialPrefs
+import com.cards.game.literature.ui.common.WindowSize.isCompactHeight
 import com.cards.game.literature.ui.theme.CardRed
 import literature.composeapp.generated.resources.Res
 import literature.composeapp.generated.resources.*
@@ -226,6 +228,8 @@ fun GameSetupDialog(
     allowEightPlayers: Boolean = false,
     showDifficulty: Boolean = true
 ) {
+    val windowInfo = currentWindowAdaptiveInfo()
+    val isCompact = windowInfo.isCompactHeight
     var selectedCount by remember { mutableIntStateOf(4) }
     var selectedDifficulty by remember { mutableStateOf(BotDifficulty.MEDIUM) }
     val primary = MaterialTheme.colorScheme.primary
@@ -243,20 +247,23 @@ fun GameSetupDialog(
         Surface(
             shape = RoundedCornerShape(24.dp),
             color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 6.dp
+            tonalElevation = 6.dp,
+            modifier = if (isCompact) Modifier.fillMaxHeight(0.9f) else Modifier
         ) {
             Column(
-                modifier = Modifier.padding(28.dp),
+                modifier = Modifier
+                    .padding(if (isCompact) 16.dp else 28.dp)
+                    .then(if (isCompact) Modifier.verticalScroll(rememberScrollState()) else Modifier),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Header
                 Text(
                     text = stringResource(Res.string.suits_display),
-                    fontSize = 22.sp,
+                    fontSize = if (isCompact) 18.sp else 22.sp,
                     color = secondary,
                     letterSpacing = 6.sp
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(if (isCompact) 4.dp else 8.dp))
                 Text(
                     text = stringResource(Res.string.game_setup_title),
                     style = MaterialTheme.typography.headlineSmall,
@@ -269,7 +276,7 @@ fun GameSetupDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(if (isCompact) 10.dp else 24.dp))
 
                 // Player count cards
                 Row(
@@ -294,13 +301,13 @@ fun GameSetupDialog(
                                     shape = RoundedCornerShape(16.dp)
                                 )
                                 .clickable { selectedCount = count }
-                                .padding(vertical = 16.dp),
+                                .padding(vertical = if (isCompact) 8.dp else 16.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "$count",
-                                    fontSize = 28.sp,
+                                    fontSize = if (isCompact) 20.sp else 28.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = if (isSelected) primary else onSurface
                                 )
@@ -309,7 +316,7 @@ fun GameSetupDialog(
                                     style = MaterialTheme.typography.labelSmall,
                                     color = if (isSelected) primary else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                Spacer(modifier = Modifier.height(6.dp))
+                                Spacer(modifier = Modifier.height(if (isCompact) 2.dp else 6.dp))
                                 Text(
                                     text = stringResource(Res.string.game_setup_teams_format, teams, teams),
                                     style = MaterialTheme.typography.labelMedium,
@@ -323,7 +330,7 @@ fun GameSetupDialog(
 
                 // Bot difficulty selector
                 if (showDifficulty) {
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(if (isCompact) 10.dp else 24.dp))
 
                     Text(
                         text = stringResource(Res.string.game_setup_difficulty_label),
@@ -331,7 +338,7 @@ fun GameSetupDialog(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(if (isCompact) 6.dp else 12.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -355,7 +362,7 @@ fun GameSetupDialog(
                                         shape = RoundedCornerShape(16.dp)
                                     )
                                     .clickable { selectedDifficulty = difficulty }
-                                    .padding(vertical = 12.dp),
+                                    .padding(vertical = if (isCompact) 6.dp else 12.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -377,14 +384,14 @@ fun GameSetupDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(if (isCompact) 12.dp else 28.dp))
 
                 // Action buttons
                 Button(
                     onClick = { onConfirm(selectedCount, selectedDifficulty) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp),
+                        .height(if (isCompact) 44.dp else 52.dp),
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = primary)
                 ) {
@@ -394,7 +401,7 @@ fun GameSetupDialog(
                         fontWeight = FontWeight.Bold
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(if (isCompact) 4.dp else 8.dp))
                 TextButton(
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth()
