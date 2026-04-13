@@ -311,7 +311,7 @@ fun GameBoardContent(
                                     )
                                 } else {
                                     SectionLabel(stringResource(Res.string.label_half_suits_section))
-                                    DeckTracker(
+                                    SideBySideDeckTracker(
                                         statuses = uiState.halfSuitStatuses,
                                         myTeamId = uiState.myTeamId
                                     )
