@@ -1,60 +1,56 @@
 package com.cards.game.literature.ui.game
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.boundsInRoot
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
-import kotlinx.coroutines.delay
 import com.cards.game.literature.audio.SoundEvent
 import com.cards.game.literature.audio.SoundPlayer
 import com.cards.game.literature.bot.BotDifficulty
-import com.cards.game.literature.model.Card
 import com.cards.game.literature.model.GameEvent
-import com.cards.game.literature.preferences.GamePrefs
+import com.cards.game.literature.model.GamePhase
 import com.cards.game.literature.model.HalfSuit
 import com.cards.game.literature.model.Suit
-import com.cards.game.literature.model.GamePhase
+import com.cards.game.literature.preferences.GamePrefs
 import com.cards.game.literature.preferences.TutorialPrefs
+import com.cards.game.literature.ui.common.WindowSize.isCompactHeight
+import com.cards.game.literature.ui.common.WindowSize.isExpandedWidth
+import com.cards.game.literature.ui.common.WindowSize.useSideBySide
 import com.cards.game.literature.ui.game.tutorial.TutorialOverlay
 import com.cards.game.literature.ui.game.tutorial.TutorialState
 import com.cards.game.literature.ui.game.tutorial.TutorialStep
 import com.cards.game.literature.ui.game.tutorial.rememberTutorialState
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import com.cards.game.literature.ui.common.WindowSize.isCompactHeight
-import com.cards.game.literature.ui.common.WindowSize.isExpandedWidth
-import com.cards.game.literature.ui.common.WindowSize.useSideBySide
 import com.cards.game.literature.ui.theme.CardRed
 import com.cards.game.literature.ui.theme.GoldAccent
 import com.cards.game.literature.ui.theme.LightGreen
 import com.cards.game.literature.viewmodel.GameUiState
 import com.cards.game.literature.viewmodel.GameViewModel
-import literature.composeapp.generated.resources.Res
+import kotlinx.coroutines.delay
 import literature.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -129,6 +125,7 @@ fun GameBoardScreen(
 fun GameBoardContent(
     viewModel: GameViewModel,
     headerOverlay: @Composable () -> Unit = {},
+    floatingActionButton: @Composable () -> Unit = {},
     tutorialState: TutorialState? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -241,6 +238,66 @@ fun GameBoardContent(
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
+            floatingActionButton = floatingActionButton,
+            bottomBar = {
+                Column(modifier = Modifier.fillMaxWidth()
+                    .navigationBarsPadding()) {
+                    // Last event strip
+                    LastEventStrip(events = gameLog)
+
+                    // Bottom NavigationBar
+                    NavigationBar(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        windowInsets = WindowInsets()
+                    ) {
+                        GameTab.entries.forEach { tab ->
+                            val tabLabel = stringResource(tab.labelRes)
+                            NavigationBarItem(
+                                modifier = if (tab == GameTab.HAND) {
+                                    Modifier.onGloballyPositioned { coords ->
+                                        val rect = coords.boundsInRoot()
+                                        tutorialState?.reportBounds(TutorialStep.HAND_TAB, rect)
+                                    }
+                                } else Modifier,
+                                icon = { Icon(tab.icon, contentDescription = tabLabel) },
+                                label = {
+                                    Text(
+                                        tabLabel,
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                },
+                                selected = selectedTab == tab,
+                                onClick = {
+                                    selectedTab = tab
+                                    if (tab == GameTab.HAND
+                                        && tutorialState?.currentStep == TutorialStep.HAND_TAB
+                                    ) {
+                                        tutorialState.advance()
+                                    }
+                                },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = MaterialTheme.colorScheme.secondary,
+                                    selectedTextColor = MaterialTheme.colorScheme.secondary,
+                                    indicatorColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f),
+                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            )
+                        }
+                    }
+
+                    // Pinned action buttons
+                    ActionButtons(
+                        isMyTurn = uiState.isMyTurn,
+                        onAskCard = { showAskSheet = true },
+                        onClaimDeck = { showClaimSheet = true },
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                            .onGloballyPositioned { coords ->
+                                tutorialState?.reportBounds(TutorialStep.ACTION_BUTTONS, coords.boundsInRoot())
+                            }
+                    )
+                }
+            },
             containerColor = MaterialTheme.colorScheme.background
         ) { padding ->
             Column(
@@ -406,56 +463,6 @@ fun GameBoardContent(
                             )
                         }
                     }
-
-                    // Last event strip
-                    LastEventStrip(events = gameLog)
-
-                    // Bottom NavigationBar
-                    NavigationBar(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        windowInsets = WindowInsets()
-                    ) {
-                        GameTab.entries.forEach { tab ->
-                            val tabLabel = stringResource(tab.labelRes)
-                            NavigationBarItem(
-                                modifier = if (tab == GameTab.HAND) {
-                                    Modifier.onGloballyPositioned { coords ->
-                                        val rect = coords.boundsInRoot()
-                                        tutorialState?.reportBounds(TutorialStep.HAND_TAB, rect)
-                                    }
-                                } else Modifier,
-                                icon = { Icon(tab.icon, contentDescription = tabLabel) },
-                                label = { Text(tabLabel, style = MaterialTheme.typography.bodyLarge) },
-                                selected = selectedTab == tab,
-                                onClick = {
-                                    selectedTab = tab
-                                    if (tab == GameTab.HAND
-                                        && tutorialState?.currentStep == TutorialStep.HAND_TAB
-                                    ) {
-                                        tutorialState.advance()
-                                    }
-                                },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = MaterialTheme.colorScheme.secondary,
-                                    selectedTextColor = MaterialTheme.colorScheme.secondary,
-                                    indicatorColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f),
-                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            )
-                        }
-                    }
-
-                    // Pinned action buttons
-                    ActionButtons(
-                        isMyTurn = uiState.isMyTurn,
-                        onAskCard = { showAskSheet = true },
-                        onClaimDeck = { showClaimSheet = true },
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp, vertical = 10.dp)
-                            .onGloballyPositioned { coords ->
-                                tutorialState?.reportBounds(TutorialStep.ACTION_BUTTONS, coords.boundsInRoot())
-                            }
-                    )
                 }
             }
         }
