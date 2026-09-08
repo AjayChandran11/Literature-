@@ -37,3 +37,10 @@
 -dontwarn co.touchlab.kermit.**
 -dontwarn com.google.firebase.**
 -dontwarn com.google.android.gms.**
+
+# Firebase discovers ComponentRegistrars reflectively via their no-arg constructor. AGP 9's R8
+# (strictFullModeForKeepRules) no longer keeps <init>() for a bare `-keep class`, and the rule
+# shipped by firebase-components 18.0.0 is bare — so Crashlytics' registrar lost its constructor
+# and the component silently vanished ("FirebaseCrashlytics component is not present", 1.1.12/13).
+# Same rule Firebase added upstream in firebase-components 18.0.1.
+-keep class * implements com.google.firebase.components.ComponentRegistrar { <init>(); }
